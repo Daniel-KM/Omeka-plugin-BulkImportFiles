@@ -146,14 +146,22 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
       $this->view->files_data_for_view = $files_data_for_view;
 
-      $select_list = get_db()->getTable('Element')->findPairsForSelectForm();
-      foreach ($select_list as $key => $value) {
+      $db = get_db();
+      $elementTable = $db->getTable('Element');
+      $elementSetTable = $db->getTable('ElementSet');
 
-        $key_set_id = get_db()->getTable('Element')->find($key)->element_set_id;
-        $select_list[$key] = get_db()->getTable('ElementSet')->find($key_set_id)->name.":".$value;
+      $select_list = $elementTable->findPairsForSelectForm();
+      $listTerms = [];
+      foreach ($select_list as $elementSetName => $elements) {
+          foreach ($elements as $elementId => $elementName) {
+              // Keep the untranslated name.
+              $element = $elementTable->find($elementId);
+              $elementSet = $elementSetTable->find($element->element_set_id);
+              $listTerms[$elementSet->name . ':' . $element->name] = $elementSetName . ' : ' . __($elementName);
+          }
       }
 
-      $this->view->listTerms = $select_list;
+      $this->view->listTerms = $listTerms;
       $this->view->filesMaps = $this->filesMaps;
 
   }
@@ -165,6 +173,9 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
       $params['media_type'] = $this->getParam('media_type');
       $params['listterms_select'] = $this->getParam('listterms_select');
 
+      $error = '';
+      $request = '';
+
       if (!empty($params['omeka_file_id'])) {
           $omeka_file_id = $params['omeka_file_id'];
           $media_type = $params['media_type'];
@@ -172,20 +183,23 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
           /** @var \Omeka\Api\Representation\ItemRepresentation $item */
 
-          $file_content = "";
+          $file_content = "$media_type = media_type\n";
+          $db = get_db();
+          $elementTable = $db->getTable('Element');
+          $elementSetTable = $db->getTable('ElementSet');
 
-          $file_content = "<map>\n";
-
-          $key_title = get_db()->getTable('Element')->findByElementSetNameAndElementName('Dublin Core', 'Title')->id;
-          $file_content .= "$media_type = $key_title\n";
           foreach ($listterms_select as $term_item_name) {
               foreach ($term_item_name['property'] as $term) {
-                  $file_content .= $term_item_name['field']." = ".$term."\n";
+                list($elementSetName, $elementName) = array_map('trim', explode(':', $term));
+                $element = $elementTable->findByElementSetNameAndElementName($elementSetName, $elementName);
+                if (!$element) {
+                  continue;
+                }
+                $file_content .= $term_item_name['field'] . ' = ' . $elementSetName . ' : ' . $elementName . "\n";
               }
           }
-          $file_content .= "</map>";
 
-          $folder_path = dirname(__DIR__)."/data/mapping";
+          $folder_path = dirname(__DIR__) . '/data/mapping';
           $response = false;
           if (!empty($folder_path)) {
 
@@ -193,17 +207,15 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                   $files = $this->listFilesInDir($folder_path);
                   $file_path = $folder_path . '/';
                   foreach ($files as $file_index => $file) {
-                      $getId3 = new GetId3();
-                      $file_source = $getId3
-                          // ->setOptionMD5Data(true)
-                          // ->setOptionMD5DataSource(true)
-                          // ->setEncoding('UTF-8')
-                          ->analyze($file_path . $file);
-
-                      if($file != $omeka_file_id)
+                      if ($file != $omeka_file_id) {
                           continue;
+                      }
 
-                      $response = $this->extractStringToFile($file_path . $file, $file_content);
+                      if (!is_writeable($file_path . $file)) {
+                        $error = __('Filepath "%s" is not writeable.', $file_path . $file); // @translate
+                      }
+
+                      $response = file_put_contents($file_path . $file, $file_content);
                   }
               } else {
                   $error = __('Folder not exist'); // @translate;
@@ -221,7 +233,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
           $request = __('Request empty.'); // @translate
       }
 
-      $this->view->request = $request;
+      $this->view->request = $error ?: $request;
   }
 
   public function addFileAction(){
@@ -246,12 +258,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
           $buffer = '';
           $hasString = false;
 
-          $file_content = "";
-
-          $file_content = "<map>\n";
-          $key_title = get_db()->getTable('Element')->findByElementSetNameAndElementName('Dublin Core', 'Title')->id;
-          $file_content .= "$media_type = $key_title\n";
-          $file_content .= "</map>";
+          $file_content = "$media_type = media_type\n";
 
           fwrite($handle, $file_content);
           fclose($handle);
@@ -595,58 +602,58 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
               $files = $this->listFilesInDir($folder_path);
               $file_path = $folder_path . '/';
 
+              $db = get_db();
+              $elementTable = $db->getTable('Element');
+
               foreach ($files as $file_index => $file) {
-                  $getId3 = new getID3();
-                  $file_source = $getId3
-                      // ->setOptionMD5Data(true)
-                      // ->setOptionMD5DataSource(true)
-                      // ->setEncoding('UTF-8')
-                      ->analyze($file_path . $file);
-
-                  $data = $this->extractStringFromFile($file_path . $file, '<map>', '</map>');
-
+                  $data = file_get_contents($file_path . $file);
                   $data = trim($data);
                   if (empty($data)) {
                       continue;
                   }
 
-                  $data_rows = array_map('trim', preg_split('/\n|\r\n?/', $data));
-                  foreach ($data_rows as $key => $value) {
-                      if (trim($value) == '') {
-                          array_splice($data_rows, $key, 1);
-                      }
-                  }
-                  array_splice($data_rows, 0, 1);
-                  array_splice($data_rows, count($data_rows) - 1, 1);
+                  $data_rows = array_filter(array_map('trim', preg_split('/\n|\r\n?/', $data)));
 
+                  $mediaType = null;
                   $current_maps = [];
                   foreach ($data_rows as $key => $value) {
+                      $value = array_map('trim', explode('=', $value));
+                      if (count($value) !== 2)  {
+                        continue;
+                      }
 
-                      $value_key = array_map('trim', explode('=', $value));
-                      $key_str = $value_key[1];
-                      $key_int = (int) $key_str;
-                      $elementId = $key_int;
-                      $element = $db->getTable('Element')->find($key_int);
+                      if (in_array('media_type', $value)) {
+                        $mediaType = $value[0] === 'media_type' ? $value[1] : $value[0];
+                        continue;
+                      }
+
+                      // Reorder as mapping = element.
+                      if (strpos($value[0], '/') === false
+                          && strpos($value[0], '.') === false
+                          && strpos($value[0], ':') !== false
+                      ) {
+                        $elementFullName = $value[0];
+                        $map = $value[1];
+                      } else {
+                        $elementFullName = $value[1];
+                        $map = $value[0];
+                      }
+
+                      if (strpos($elementFullName, ':') === false || count(explode(':', $elementFullName)) !== 2) {
+                        continue;
+                      }
+                      list($elementSetName, $elementName) = array_map('trim', explode(':', $elementFullName));
+                      $element = $elementTable->findByElementSetNameAndElementName($elementSetName, $elementName);
                       if (!$element) {
                         continue;
                       }
-                      $elementSetId = $element->element_set_id;
 
-                      $value_key[1] = $db->getTable('ElementSet')->find($elementSetId)->name . ':' . $element->name;
+                      $current_maps[$elementSetName . ':' . $elementName][] = $map;
+                    }
 
-                      $current_maps[$value_key[1]][] = $value_key[0];
-                  }
-                  if (isset($current_maps['Dublin Core:Title'][0])) {
-                      $mediaType = $current_maps['Dublin Core:Title'][0];
-                      if (count($current_maps['Dublin Core:Title']) <= 1) {
-                          unset($current_maps['Dublin Core:Title']);
-                      } else {
-                          unset($current_maps['Dublin Core:Title'][0]);
-                      }
+                   if ($mediaType) {
                       $current_maps['item_id'] = $file;
                       $this->filesMapsArray[$mediaType] = $current_maps;
-                  } else {
-                      $mediaType = null;
                   }
 
                   $current_maps['media_type'] = $mediaType;

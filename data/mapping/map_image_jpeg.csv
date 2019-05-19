@@ -1,7 +1,11 @@
-<map>
-image/jpeg = 50
-jpg.exif.IFD0.Artist = 39
-xmp.dc.subject.1 = 49
-xmp.dc.subject.2 = 49
-video.lossless = 219
-</map>
+image/jpeg = media_type
+iptc.IPTCApplication.Headline = Dublin Core : Title
+iptc.IPTCApplication.Caption = Dublin Core : Description
+jpg.exif.EXIF.DateTimeOriginal = Dublin Core : Date
+jpg.exif.EXIF.DateTimeDigitized = Dublin Core : Date Modified
+jpg.exif.FILE.MimeType = Dublin Core : Format
+iptc.IPTCApplication.Keywords.0 = Dublin Core : Subject
+iptc.IPTCApplication.Keywords.1 = Dublin Core : Subject
+iptc.IPTCApplication.Keywords.2 = Dublin Core : Subject
+iptc.IPTCApplication.Keywords.3 = Dublin Core : Subject
+iptc.IPTCApplication.Keywords.4 = Dublin Core : Subject

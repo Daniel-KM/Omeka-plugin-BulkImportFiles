@@ -1,7 +1,5 @@
-<map>
-application/pdf = 50
-Title = 50
-Author = 39
-CreationDate = 40
-Producer = 41
-</map>
+application/pdf = media_type
+Title = Dublin Core : Title
+Author = Dublin Core : Creator
+CreationDate = Dublin Core : Date
+Producer = Dublin Core : Description

@@ -81,11 +81,11 @@ Dublin Core : Description = iptc.IPTCApplication.Caption
 Dublin Core : Date = jpg.exif.EXIF.DateTimeOriginal
 Dublin Core : Date Modified = jpg.exif.EXIF.DateTimeDigitized
 Dublin Core : Format = jpg.exif.FILE.MimeType
-Dublin Core : Subject = iptc.IPTCApplication.Keywords/0
-Dublin Core : Subject = iptc.IPTCApplication.Keywords/1
-Dublin Core : Subject = iptc.IPTCApplication.Keywords/2
-Dublin Core : Subject = iptc.IPTCApplication.Keywords/3
-Dublin Core : Subject = iptc.IPTCApplication.Keywords/4
+Dublin Core : Subject = iptc.IPTCApplication.Keywords.0
+Dublin Core : Subject = iptc.IPTCApplication.Keywords.1
+Dublin Core : Subject = iptc.IPTCApplication.Keywords.2
+Dublin Core : Subject = iptc.IPTCApplication.Keywords.3
+Dublin Core : Subject = iptc.IPTCApplication.Keywords.4
 ```
 
 Note that metadata can be slighly different between standards.
