@@ -1,0 +1,272 @@
+.bulkimportfiles_maps_settings {
+
+}
+
+.modulePreContent .title {
+
+}
+
+.show .property {
+    justify-content: flex-start;
+}
+
+.field {
+    display: block;
+}
+
+.files-map-block {
+
+}
+
+.files-map-block #upload {
+    display: none;
+}
+
+#table-selected-files .full_info {
+    display: none;
+}
+
+#table-selected-files .separator td {
+    background-color: #c0c0c0;
+    height: 3px;
+    vertical-align: top;
+}
+
+#table-selected-files .separator span {
+    float: left;
+    padding-right: 41px;
+    color: #A91919;
+    font-weight: bold;
+}
+
+#table-selected-files .separator span span {
+    color: #fff;
+    padding-right: 5px;
+}
+
+#table-selected-files .separator .action-button {
+    float: right;
+}
+
+#table-selected-files .separator .action-button a {
+    margin-left: 10px;
+}
+
+#table-selected-files .xdebug-var-dump small:first-child {
+    display: none;
+}
+
+#table-selected-files .errors {
+    color: rgb(204, 0, 0);
+}
+
+.js-action-property-button {
+    float: right;
+}
+
+#table-selected-files .js-action-property-button span {
+    font-size: 24px;
+    padding: 0;
+    border: 3px solid;
+    line-height: 18px;
+    cursor: pointer;
+    width: 20px;
+    text-align: center;
+}
+
+#table-selected-files .js-action-property-button span:hover {
+    color: #e34545;
+}
+
+#table-selected-files .js-action-property-button .js-add-action {
+
+}
+
+#table-selected-files .js-action-property-button .js-remove-action {
+    margin-right: 0px;
+}
+
+#table-selected-files .with_property {
+
+}
+
+#table-selected-files .with_property .omeka_property {
+    float: left;
+    width: 100%;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.underline_link {
+    text-decoration: underline;
+}
+
+.type_hidden {
+    display: none;
+}
+
+#table-selected-files .full_info .js-save-button {
+    float: right;
+    padding: 0px;
+    margin-top: 0px;
+}
+
+#table-selected-files .js-save-button button {
+    background-color: #fff;
+    border: 1px solid;
+    display: flex;
+    margin-bottom: 8px;
+}
+
+#table-selected-files .omeka_property .listterms_select {
+    float: left;
+    margin-bottom: 10px;
+}
+
+#table-selected-files .omeka_property {
+
+}
+
+#table-selected-files .omeka_list_property {
+    margin-bottom: 15px;
+}
+
+#table-selected-files .omeka_list_property .listterms_with_action {
+    margin-bottom: 10px;
+}
+
+#table-selected-files .omeka_list_property .listterms_with_action .js-action-property-button {
+    margin-top: 6px;
+}
+
+div.messages .response {
+    margin: 0 0 6px;
+    border-radius: 3px;
+    padding: 6px 10px;
+}
+
+div.messages .response.success {
+    background-color: #cdffcd;
+}
+
+div.messages .response.error {
+    background-color: #cdffcd;
+}
+
+.file_type_property_td {
+    background-color: #c0c0c0;
+}
+
+.file_type_property h4 {
+    float: left;
+    color: #fff;
+    margin-right: 10px;
+}
+
+.file_type_property {
+    color: #A91919;
+    font-weight: bold;
+}
+
+.make_import_form .field {
+    display: flex;
+}
+
+.make_import_form .inputs {
+    width: 55%;
+}
+
+.make_import_form .check_button {
+    margin-left: 10px;
+    height: 35px;
+}
+
+.response .isset_no {
+    background-color: #f4b4b4;
+}
+.isset_yes.success {
+    background-color: #cdffcd;
+}
+.isset_yes.warning {
+    background-color: #fff6e6;
+}
+.isset_yes.error {
+    background-color: #f4b4b4;
+}
+
+.modal-loader {
+    display: none;
+    background-color: rgba(0, 0, 0, 0.5);
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+}
+
+.modal-loader .modal-loader-info {
+    top: 50%;
+    left: 50%;
+    position: absolute;
+    color: #fff;
+}
+
+.total_info {
+    background-color: #cdffcd;
+    border: 1px solid;
+    padding: 10px;
+    display: flex;
+}
+
+.total_info .total_info_row {
+    margin-right: 20px;
+}
+
+.total_info .total_info_row h4 {
+
+}
+
+.total_info .js-recognize_files {
+
+}
+
+.selected-files-row .add_item_button {
+    background-color: rgba(255,255,255,0.4);
+    color: #676767;
+    border-radius: 3px;
+    border: 0;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.15) inset;
+    padding: 1px 12px;
+    display: inline-block;
+    text-align: center;
+    cursor: pointer;
+    height: 25px;
+    min-height: 0;
+    vertical-align: top;
+    margin-left: 12px;
+}
+
+#table-selected-files .separator.selected-files-row.set_active td {
+    background-color: #cdffcd;
+}
+
+#table-selected-files .separator.set_active span span {
+    color: #000;
+}
+
+.selected-files-row .add_file_button {
+    background-color: rgba(255,255,255,0.4);
+    color: #676767;
+    border-radius: 3px;
+    border: 0;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.15) inset;
+    padding: 1px 12px;
+    display: inline-block;
+    text-align: center;
+    cursor: pointer;
+    height: 25px;
+    min-height: 0;
+    vertical-align: top;
+    margin-left: 12px;
+}

@@ -1,0 +1,6 @@
+{
+    "require": {
+        "phansys/getid3": " ^2.1@dev",
+        "mikehaertl/php-pdftk": "^0.5.0"
+    }
+}

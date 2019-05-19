@@ -1,0 +1,1166 @@
+<?php
+/**
+ * Bulk Import Files Controller
+ */
+
+use mikehaertl\pdftk\Pdf;
+//use GetId3\GetId3Core as GetId3;
+require_once dirname(__DIR__)."/../../application/libraries/getid3/getid3.php";
+
+class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionController
+{
+  /**
+   * Mapping by item id.
+   *
+   * @var array
+   */
+  protected $filesMaps;
+
+  /**
+   * @var string
+   */
+  protected $resourceTemplateLabel = 'Bulk import files';
+
+  /**
+   * Mapping by media type like 'dcterms:created' => ['jpg/exif/IFD0/DateTime'].
+   *
+   * @var array
+   */
+  protected $filesMapsArray;
+
+  private $flatArray;
+
+  protected $parsed_data;
+
+  protected $filesData;
+
+  protected $basePath;
+
+  protected $directory;
+
+  protected $ignoredKeys = [
+      'GETID3_VERSION',
+      'filesize',
+      'filename',
+      'filepath',
+      'filenamepath',
+      'avdataoffset',
+      'avdataend',
+      'fileformat',
+      'encoding',
+      'mime_type',
+      'md5_data',
+  ];
+  protected $getId3IgnoredKeys = [
+      'GETID3_VERSION',
+      'filesize',
+      'filename',
+      'filepath',
+      'filenamepath',
+      'avdataoffset',
+      'avdataend',
+      'fileformat',
+      'encoding',
+      'mime_type',
+      'md5_data',
+  ];
+
+  protected $bulk;
+
+  public function indexAction() {
+
+    $this->prepareFilesMaps();
+
+    // $view = new ViewModel;
+    // $view->setVariable('filesMaps', $this->filesMaps);
+    // $view->setVariable('form', $form);
+    // require_once BULKIMPORTFILES_PLUGIN_DIR . '/forms/SettingsForm.php';
+    // $form = new BulkUsers_Form_Settings;
+    // $this->view->form = $form;
+    $this->view->filesMaps = $this->filesMaps;
+  }
+
+  public function updateAction() {
+    $this->view->value = "update";
+  }
+
+  public function importAction() {
+    $this->view->value = "import";
+  }
+
+  public function getFilesAction()
+  {
+      $this->prepareFilesMaps();
+      $request = $this->getRequest();
+      $files = $_FILES;
+      $files_data_for_view = [];
+
+      foreach ($files['files']['name'] as $key =>$file_name) {
+
+          $file = [];
+
+          $file['type'] = $files['files']['type'][$key];
+          $file['name'] = $files['files']['name'][$key];
+          $file['tmp_name'] = $files['files']['tmp_name'][$key];
+          $file['error'] = $files['files']['error'][$key];
+          $file['size'] = $files['files']['size'][$key];
+
+          $media_type = $file['type'];
+          $data = [];
+          $this->parsed_data = [];
+          $errors = '';
+
+          if (isset($this->filesMapsArray[$media_type])) {
+              $filesMapsArray = $this->filesMapsArray[$media_type];
+              $file['item_id'] = $filesMapsArray['item_id'];
+              unset($filesMapsArray['media_type']);
+              unset($filesMapsArray['item_id']);
+
+              switch ($media_type) {
+                  case 'application/pdf':
+                      $data = $this->extractDataFromPdf($file['tmp_name']);
+                      $this->parsed_data = $this->flatArray($data);
+                      $data = $this->mapData()->array($data, $filesMapsArray, true);
+                      break;
+
+                  default:
+                      $getId3 = new GetId3();
+                      $file_source = $getId3
+                          // ->setOptionMD5Data(true)
+                          // ->setOptionMD5DataSource(true)
+                          // ->setEncoding('UTF-8')
+                          ->analyze($file['tmp_name']);
+                      $this->parsed_data = $this->flatArray($file_source, $this->ignoredKeys);
+                      $data = $this->mapData()->array($file_source, $filesMapsArray, true);
+                      break;
+              }
+          }
+
+          $files_data_for_view[] = [
+              'file' => $file,
+              'source_data' => $this->parsed_data,
+              'recognized_data' => $data,
+              'errors' => $errors,
+          ];
+      }
+
+      $this->view->files_data_for_view = $files_data_for_view;
+
+      $select_list = get_db()->getTable('Element')->findPairsForSelectForm();
+      foreach ($select_list as $key => $value) {
+
+        $key_set_id = get_db()->getTable('Element')->find($key)->element_set_id;
+        $select_list[$key] = get_db()->getTable('ElementSet')->find($key_set_id)->name.":".$value;
+      }
+
+      $this->view->listTerms = $select_list;
+      $this->view->filesMaps = $this->filesMaps;
+
+  }
+
+  public function saveOptionsAction()
+  {
+      $params = [];
+      $params['omeka_file_id'] = $this->getParam('omeka_file_id');
+      $params['media_type'] = $this->getParam('media_type');
+      $params['listterms_select'] = $this->getParam('listterms_select');
+
+      if (!empty($params['omeka_file_id'])) {
+          $omeka_file_id = $params['omeka_file_id'];
+          $media_type = $params['media_type'];
+          $listterms_select = $params['listterms_select'];
+
+          /** @var \Omeka\Api\Representation\ItemRepresentation $item */
+
+          $file_content = "";
+
+          $file_content = "<map>\n";
+
+          $key_title = get_db()->getTable('Element')->findByElementSetNameAndElementName('Dublin Core', 'Title')->id;
+          $file_content .= "$media_type = $key_title\n";
+          foreach ($listterms_select as $term_item_name) {
+              foreach ($term_item_name['property'] as $term) {
+                  $file_content .= $term_item_name['field']." = ".$term."\n";
+              }
+          }
+          $file_content .= "</map>";
+
+          $folder_path = dirname(__DIR__)."/data/mapping";
+          $response = false;
+          if (!empty($folder_path)) {
+
+              if (file_exists($folder_path) && is_dir($folder_path)) {
+                  $files = $this->listFilesInDir($folder_path);
+                  $file_path = $folder_path . '/';
+                  foreach ($files as $file_index => $file) {
+                      $getId3 = new GetId3();
+                      $file_source = $getId3
+                          // ->setOptionMD5Data(true)
+                          // ->setOptionMD5DataSource(true)
+                          // ->setEncoding('UTF-8')
+                          ->analyze($file_path . $file);
+
+                      if($file != $omeka_file_id)
+                          continue;
+
+                      $response = $this->extractStringToFile($file_path . $file, $file_content);
+                  }
+              } else {
+                  $error = __('Folder not exist'); // @translate;
+              }
+          } else {
+              $error = __('Can’t check empty folder'); // @translate;
+          }
+
+          if ($response) {
+              $request = __('Mapping of elements successfully updated.'); // @translate
+          } else {
+              $request = __('Can’t update mapping.'); // @translate
+          }
+      } else {
+          $request = __('Request empty.'); // @translate
+      }
+
+      $this->view->request = $request;
+  }
+
+  public function addFileAction(){
+
+      $params['media_type'] = $this->getParam('media_type');
+
+      if (!empty($params['media_type'])) {
+
+          $media_type = $params['media_type'];
+
+          $file_name = 'map_' . explode('/', $media_type)[0] . '_' . explode('/', $media_type)[1];
+          $filepath = dirname(__DIR__) . '/data/mapping/' . $file_name . '.csv';
+
+          if (!strlen($filepath)) {
+            throw new RuntimeException('Filepath string should be longer that zero character.');
+          }
+
+          if (($handle = fopen($filepath, 'w')) === false) {
+            throw new RuntimeException(sprintf('Could not save file "%s" for writing.', $filepath));
+          }
+
+          $buffer = '';
+          $hasString = false;
+
+          $file_content = "";
+
+          $file_content = "<map>\n";
+          $key_title = get_db()->getTable('Element')->findByElementSetNameAndElementName('Dublin Core', 'Title')->id;
+          $file_content .= "$media_type = $key_title\n";
+          $file_content .= "</map>";
+
+          fwrite($handle, $file_content);
+          fclose($handle);
+          $request = __('File successfully added!');
+
+      }else {
+
+          $request = __('Request empty.'); // @translate
+      }
+
+      $this->view->request = $request;
+  }
+
+  public function deleteFileAction(){
+
+      $params['media_type'] = $this->getParam('media_type');
+      $reloadURL = $this->view->url('bulk-import-files');
+
+      if (!empty($params['media_type'])) {
+
+          $file_name = $params['media_type'];
+
+          $filepath = dirname(__DIR__) . '/data/mapping/' . $file_name;
+
+          if (!strlen($filepath)) {
+              throw new RuntimeException('Filepath string should be longer that zero character.');
+          }
+
+          if (!is_writeable($filepath)) {
+              throw new RuntimeException(sprintf('File "%s" is not writeable. Check rights.', $filepath));
+          }
+
+          if (($handle = fopen($filepath, 'w')) === false) {
+              throw new RuntimeException(sprintf('Could not save file "%s" for writing.', $filepath));
+          }
+
+          fclose($handle);
+          unlink($filepath) or die("Couldn't delete file");
+
+          $request['state'] = true;
+          $request['reloadURL'] = $reloadURL;
+          $request['msg'] = __('File successfully deleted!');
+      }else {
+          $request['state'] = false;
+          $request['reloadURL'] = $reloadURL;
+          $request['msg'] = __('Request empty.');
+      }
+
+      $request = json_encode($request);
+      $this->view->request = $request;
+  }
+
+  public function checkFolderAction()
+  {
+      $this->prepareFilesMaps();
+
+      $files_data = [];
+      $total_files = 0;
+      $total_files_can_recognized = 0;
+      $error = '';
+
+      $params['folder'] = $this->getParam('folder');
+
+      if (!empty($params['folder'])) {
+          if (file_exists($params['folder']) && is_dir($params['folder'])) {
+              $files = $this->listFilesInDir($params['folder']);
+              $file_path = $params['folder'] . '/';
+              foreach ($files as $file) {
+                  $getId3 = new GetId3();
+                  $file_source = $getId3
+                      // ->setOptionMD5Data(true)
+                      // ->setOptionMD5DataSource(true)
+                      // ->setEncoding('UTF-8')
+                      ->analyze($file_path . $file);
+
+                  ++$total_files;
+
+                  $media_type = 'undefined';
+                  $file_isset_maps = 'no';
+
+                  if (isset($file_source['mime_type'])) {
+                      $media_type = $file_source['mime_type'];
+                      if (isset($this->filesMapsArray[$media_type])) {
+                          $file_isset_maps = 'yes';
+                          ++$total_files_can_recognized;
+                      }
+                  }
+
+                  $files_data[] = [
+                      'filename' => $file_source['filename'],
+                      'file_size' => $file_source['filesize'],
+                      'file_type' => $media_type,
+                      'file_isset_maps' => $file_isset_maps,
+                  ];
+              }
+
+              if (count($files_data) == 0) {
+                  $error = __('Folder is empty'); // @translate;
+              }
+          } else {
+              $error = __('Folder not exist'); // @translate;
+          }
+      } else {
+          $error = __('Can’t check empty folder'); // @translate;
+      }
+
+      $this->view->files_data = $files_data;
+      $this->view->total_files = $total_files;
+      $this->view->total_files_can_recognized = $total_files_can_recognized;
+      $this->view->error = $error;
+  }
+
+  public function processImportAction()
+  {
+      $this->prepareFilesMaps();
+
+      $baseUri = FILES_DIR;
+
+      $params['data_for_recognize_row_id'] = $this->getParam('data_for_recognize_row_id');
+      $params['data_for_recognize_single'] = $this->getParam('data_for_recognize_single');
+      $params['directory'] = $this->getParam('directory');
+      $params['delete-file'] = $this->getParam('delete-file');
+
+      $data_for_recognize_row_id = $params['data_for_recognize_row_id'];
+      $notice = null;
+      $warning = null;
+      $error = null;
+
+      if (isset($params['data_for_recognize_single'])) {
+          $full_file_path = $params['directory'] . '/' . $params['data_for_recognize_single'];
+          $delete_file_action = $params['delete-file'];
+
+          // TODO Use api standard method, not direct creation.
+          // Create new media via temporary factory.
+
+          $fileinfo = new \SplFileInfo($full_file_path);
+
+          $getId3 = new GetId3();
+          $file_source = $getId3
+              // ->setOptionMD5Data(true)
+              // ->setOptionMD5DataSource(true)
+              // ->setEncoding('UTF-8')
+              ->analyze($full_file_path);
+
+          $media_type = isset($file_source['mime_type']) ? $file_source['mime_type'] : 'undefined';
+
+          if($media_type == 'undefined'){
+            $file_extension = substr($full_file_path,-4);
+            $file_extension = strtolower($file_extension);
+
+            if($file_extension == ".pdf"){
+              $media_type = "application/pdf";
+            }
+          }
+
+          if (!isset($this->filesMapsArray[$media_type])) {
+
+              $this->view->data_for_recognize_row_id = $data_for_recognize_row_id;
+              $this->view->error = sprintf(__('The media type "%s" is not managed or has no mapping.'), $media_type);
+              return;
+          }
+
+          $filesMapsArray = $this->filesMapsArray[$media_type];
+
+          unset($filesMapsArray['media_type']);
+          unset($filesMapsArray['item_id']);
+
+          // Use xml or array according to item mapping.
+          $query = reset($filesMapsArray);
+          $query = $query ? reset($query) : null;
+          $isXpath = $query && strpos($query, '/') !== false;
+
+          if ($isXpath) {
+              $data = $this->mapData()->xml($full_file_path, $filesMapsArray);
+          } else {
+              switch ($media_type) {
+                  case 'application/pdf':
+                      $data = $this->mapData()->pdf($full_file_path, $filesMapsArray);
+                      break;
+                  default:
+                      $data = $this->mapData()->array($file_source, $filesMapsArray);
+                      break;
+              }
+          }
+
+          if (count($data) <= 0) {
+              if ($query) {
+                  $warning = __('No metadata to import. You may see log for more info.'); // @translate
+              } else {
+                  $notice = __('No metadata: mapping is empty.'); // @translate
+              }
+          }
+
+          if( !isset($data['Dublin Core']) ||  !isset($data['Dublin Core']['Title'])){
+            $data['Dublin Core']['Title']=
+              array(
+                  array('text' => $params['data_for_recognize_single'], 'html' => false)
+              );
+
+          }
+
+          $hasNewItem = insert_item(
+            array('public' => true),
+            $data,
+            array(
+              'file_transfer_type'  => 'Filesystem',
+              'file_ingest_options' => array('ignore_invalid_files' => true),
+              'files' => array(
+                'Filesystem' => $full_file_path,
+                'source' => $full_file_path,
+              ),
+            ) //$fileMetadata
+          );
+
+          if ($hasNewItem && $delete_file_action === 'yes') {
+            unlink($full_file_path);
+          }
+      }
+
+      $this->view->data_for_recognize_row_id = $data_for_recognize_row_id;
+      $this->view->notice = empty($notice) ? null : $notice;
+      $this->view->warning = empty($warning) ? null : $warning;
+      $this->view->error = empty($error) ? null : $error;
+  }
+
+  /**
+   * Create a flat array from a recursive array.
+   *
+   * @example
+   * ```
+   * // The following recursive array:
+   * 'video' => [
+   *      'dataformat' => 'jpg',
+   *      'bits_per_sample' => 24;
+   * ]
+   * // is converted into:
+   * [
+   *     'video.dataformat' => 'jpg',
+   *     'video.bits_per_sample' => 24,
+   * ]
+   * ```
+   *
+   * @param array $data
+   * @param array $ignoredKeys
+   * @return array
+   */
+  protected function flatArray(array $data, array $ignoredKeys = [])
+  {
+      $this->flatArray = [];
+      $this->_flatArray($data, $ignoredKeys);
+      $result = $this->flatArray;
+      $this->flatArray = [];
+      return $result;
+  }
+
+  /**
+   * Recursive helper to flat an array with separator ".".
+   *
+   * @param array $data
+   * @param array $ignoredKeys
+   * @param string $keys
+   */
+  private function _flatArray(array $data, array $ignoredKeys = [], $keys = null)
+  {
+      foreach ($data as $key => $value) {
+          if (is_array($value)) {
+              $this->_flatArray($value, $ignoredKeys, $keys . '.' . $key);
+          } elseif (!in_array($key, $ignoredKeys)) {
+              $this->flatArray[] = [
+                  'key' => trim($keys . '.' . $key, '.'),
+                  'value' => $value,
+              ];
+          }
+      }
+  }
+
+  protected function listFilesInDir($dir)
+  {
+      if (empty($dir) || !file_exists($dir) || !is_dir($dir) || !is_readable($dir)) {
+          return [];
+      }
+      $result = array_values(array_filter(scandir($dir), function ($file) use ($dir) {
+          return is_file($dir . DIRECTORY_SEPARATOR . $file);
+      }));
+      natcasesort($result);
+      return $result;
+  }
+
+  protected function extractStringFromFile($filepath, $startString, $endString, $chunkSize = 131072)
+  {
+        if (!strlen($filepath) || !strlen($startString) || !strlen($endString)) {
+            throw new RuntimeException('Filepath, start string and end string should be longer that zero character.');
+        }
+
+        $chunkSize = (int) $chunkSize;
+        if ($chunkSize <= strlen($startString) || $chunkSize <= strlen($endString)) {
+            throw new RuntimeException('Chunk size should be longer than start and end strings.');
+        }
+
+        if (($handle = fopen($filepath, 'r')) === false) {
+            throw new RuntimeException(sprintf('Could not open file "%s" for reading/'), $filepath);
+        }
+
+        $buffer = '';
+        $hasString = false;
+
+        while (($chunk = fread($handle, $chunkSize)) !== false) {
+            if ($chunk === '') {
+                break;
+            }
+
+            $buffer .= $chunk;
+            $startPosition = strpos($buffer, $startString);
+            $endPosition = strpos($buffer, $endString);
+
+            if ($startPosition !== false && $endPosition !== false) {
+                $buffer = substr($buffer, $startPosition, $endPosition - $startPosition + 12);
+                $hasString = true;
+                break;
+            } elseif ($startPosition !== false) {
+                $buffer = substr($buffer, $startPosition);
+                $hasString = true;
+            } elseif (strlen($buffer) > (strlen($startString) * 2)) {
+                $buffer = substr($buffer, strlen($startString));
+            }
+        }
+
+        fclose($handle);
+
+        return $hasString ? $buffer : null;
+  }
+
+  protected function prepareFilesMaps()
+  {
+      $this->filesMaps = [];
+      $folder_path = dirname(__DIR__) . '/data/mapping';
+      $db = get_db();
+
+      if (!empty($folder_path)) {
+          if (file_exists($folder_path) && is_dir($folder_path)) {
+              $files = $this->listFilesInDir($folder_path);
+              $file_path = $folder_path . '/';
+
+              foreach ($files as $file_index => $file) {
+                  $getId3 = new getID3();
+                  $file_source = $getId3
+                      // ->setOptionMD5Data(true)
+                      // ->setOptionMD5DataSource(true)
+                      // ->setEncoding('UTF-8')
+                      ->analyze($file_path . $file);
+
+                  $data = $this->extractStringFromFile($file_path . $file, '<map>', '</map>');
+
+                  $data = trim($data);
+                  if (empty($data)) {
+                      continue;
+                  }
+
+                  $data_rows = array_map('trim', preg_split('/\n|\r\n?/', $data));
+                  foreach ($data_rows as $key => $value) {
+                      if (trim($value) == '') {
+                          array_splice($data_rows, $key, 1);
+                      }
+                  }
+                  array_splice($data_rows, 0, 1);
+                  array_splice($data_rows, count($data_rows) - 1, 1);
+
+                  $current_maps = [];
+                  foreach ($data_rows as $key => $value) {
+
+                      $value_key = array_map('trim', explode('=', $value));
+                      $key_str = $value_key[1];
+                      $key_int = (int) $key_str;
+                      $elementId = $key_int;
+                      $element = $db->getTable('Element')->find($key_int);
+                      if (!$element) {
+                        continue;
+                      }
+                      $elementSetId = $element->element_set_id;
+
+                      $value_key[1] = $db->getTable('ElementSet')->find($elementSetId)->name . ':' . $element->name;
+
+                      $current_maps[$value_key[1]][] = $value_key[0];
+                  }
+                  if (isset($current_maps['Dublin Core:Title'][0])) {
+                      $mediaType = $current_maps['Dublin Core:Title'][0];
+                      if (count($current_maps['Dublin Core:Title']) <= 1) {
+                          unset($current_maps['Dublin Core:Title']);
+                      } else {
+                          unset($current_maps['Dublin Core:Title'][0]);
+                      }
+                      $current_maps['item_id'] = $file;
+                      $this->filesMapsArray[$mediaType] = $current_maps;
+                  } else {
+                      $mediaType = null;
+                  }
+
+                  $current_maps['media_type'] = $mediaType;
+                  $this->filesMaps[$file] = $current_maps;
+              }
+          } else {
+              $error = 'Folder not exist'; // @translate;
+          }
+      } else {
+          $error = 'Can’t check empty folder'; // @translate;
+      }
+  }
+
+  /**
+   * @return \BulkImportFiles\Mvc\Controller\Plugin\MapData
+   */
+
+  public function mapData()
+  {
+      //$this->bulk = get_db()->getTable('Element')->findPairsForSelectForm();
+      return $this;
+  }
+
+  /**
+   * Extract data from an array with a mapping.
+   *
+   * @param array $input Array of metadata..
+   * @param array $mapping The mapping adapted to the input.
+   * @param bool $simpleExtract Only extract metadata, don't map them.
+   * @return array A resource array by property, suitable for api creation
+   * or update.
+   */
+  public function array(array $input, array $mapping, $simpleExtract = false)
+  {
+
+      $mapping = $this->normalizeMapping($mapping);
+      if (empty($input) || empty($mapping)) {
+          return [];
+      }
+
+      $result = new ArrayObject([], ArrayObject::ARRAY_AS_PROPS);
+
+      foreach ($mapping as $map) {
+          $target = reset($map);
+          $query = key($map);
+
+          $queryMapping = explode('.', $query);
+          $input_fields = $input;
+
+          foreach ($queryMapping as $qm) {
+              if (isset($input_fields[$qm])) {
+                  $input_fields = $input_fields[$qm];
+              }
+          }
+
+          if (!is_array($input_fields)) {
+              $simpleExtract
+                  ? $this->simpleExtract($result, $input_fields, $target, $query)
+                  : $this->appendValueToTarget($result, $input_fields, $target, $query);
+          }
+      }
+      return $result->exchangeArray([]);
+  }
+
+  /**
+   * Extract data from a xml file with a mapping.
+   *
+   * @param string $filepath
+   * @param array $mapping The mapping adapted to the input.
+   * @param bool $simpleExtract Only extract metadata, don't map them.
+   * @return array A resource array by property, suitable for api creation
+   * or update.
+   */
+  public function xml($filepath, array $mapping, $simpleExtract = false)
+  {
+      $mapping = $this->normalizeMapping($mapping);
+      if (empty($mapping)) {
+          return [];
+      }
+
+      $xml = $this->extractStringFromFile($filepath, '<x:xmpmeta', '</x:xmpmeta>');
+      if (empty($xml)) {
+          return [];
+      }
+
+      // Check if the xml is fully formed.
+      $xml = trim($xml);
+      if (strpos($xml, '<?xml ') !== 0) {
+          $xml = '<?xml version="1.1" encoding="utf-8"?>' . $xml;
+      }
+
+      $result = new ArrayObject([], ArrayObject::ARRAY_AS_PROPS);
+
+      libxml_use_internal_errors(true);
+      $doc = new DOMDocument();
+      $doc->loadXML($xml);
+      $xpath = new DOMXPath($doc);
+
+      // Register all namespaces to allow prefixes.
+      $xpathN = new DOMXPath($doc);
+      foreach ($xpathN->query('//namespace::*') as $node) {
+          $xpath->registerNamespace($node->prefix, $node->nodeValue);
+      }
+
+      foreach ($mapping as $map) {
+          $target = reset($map);
+          $query = key($map);
+          $nodeList = $xpath->query($query);
+          if (!$nodeList || !$nodeList->length) {
+              continue;
+          }
+
+          // The answer has many nodes.
+          foreach ($nodeList as $node) {
+              $simpleExtract
+                  ? $this->simpleExtract($result, $node->nodeValue, $target, $query)
+                  : $this->appendValueToTarget($result, $node->nodeValue, $target);
+          }
+      }
+
+      return $result->exchangeArray([]);
+  }
+
+  public function pdf($filepath, array $mapping, $simpleExtract = false)
+  {
+      $mapping = $this->normalizeMapping($mapping);
+      if (empty($mapping)) {
+          return [];
+      }
+
+      $input = $this->extractDataFromPdf($filepath);
+      return $this->array($input, $mapping, $simpleExtract);
+  }
+
+  protected function simpleExtract(ArrayObject $result, $value, $target, $source)
+  {
+      $result[] = [
+          'field' => $source,
+          'target' => $target,
+          'value' => $value,
+      ];
+  }
+
+  protected function appendValueToTarget(ArrayObject $result, $value, $target, $source)
+  {
+      static $targets = [];
+
+      if (isset($targets[$target])) {
+          if (empty($targets[$target])) {
+              return;
+          }
+      } else {
+          $targets[$target] = [];
+
+          $targets[$target]['is'] = 'resource';
+
+          $target_list = explode(":", $target);
+
+          $targets[$target]['field'] = $target_list[1];
+
+          $element = get_db()->getTable('Element')->findByElementSetNameAndElementName($target_list[0], $target_list[1]);
+          $targets[$target]['element_set_id'] = $element->element_set_id;
+          $targets[$target]['element_set_name'] = get_db()->getTable('ElementSet')->find($element->element_set_id)->name;
+      }
+
+      if($targets[$target]['is']){
+        $result[$targets[$target]['element_set_name']][$targets[$target]['field']][] = ['text' => $value, 'html'=>false];
+      }
+  }
+
+  protected function appendValueToTarget1(ArrayObject $result, $value, $target)
+  {
+      static $targets = [];
+
+      // First prepare the target keys.
+      // TODO This normalization of the mapping can be done one time outside.
+
+      // @see BulkImport\View\Helper\AutomapFields
+      // The pattern checks a term or keyword, then an optional @language, then
+      // an optional ^^ data type.
+      $pattern = '~'
+          // Check a term/keyword.
+          . '^([a-zA-Z][^@^]*)'
+          // Check a language + country.
+          . '\s*(?:@\s*([a-zA-Z]+-[a-zA-Z]+|[a-zA-Z]+|))?'
+          // Check a data type.
+          . '\s*(?:\^\^\s*([a-zA-Z][a-zA-Z0-9]*:[a-zA-Z][\w-]*|[a-zA-Z][\w-]*|))?$'
+          . '~';
+      $matches = [];
+
+      if (isset($targets[$target])) {
+          if (empty($targets[$target])) {
+              return;
+          }
+      } else {
+          $meta = preg_match($pattern, $target, $matches);
+          if (!$meta) {
+              $targets[$target] = false;
+              return;
+          }
+          $targets[$target] = [];
+          $targets[$target]['field'] = trim($matches[1]);
+          $targets[$target]['@language'] = empty($matches[2]) ? null : trim($matches[2]);
+          $targets[$target]['type'] = empty($matches[3]) ? null : trim($matches[3]);
+
+          $targets[$target]['is'] = $this->isField($targets[$target]['field']);
+
+          if ($targets[$target]['is'] === 'property') {
+              $targets[$target]['property_id'] = get_db()->getTable('Element')->findBy(array('name'=>$targets[$target]['field']),1)->id;
+          }
+      }
+
+      // Second, fill the result with the value.
+      switch ($targets[$target]['is']) {
+          case 'property':
+              $v = [];
+              $v['property_id'] = $targets[$target]['property_id'];
+              $v['type'] = $targets[$target]['type'] ?: 'literal';
+              switch ($v['type']) {
+                  case 'literal':
+                  // case strpos($resourceValue['type'], 'customvocab:') === 0:
+                  default:
+                      $v['@value'] = $value;
+                      $v['@language'] = $targets[$target]['@language'];
+                      break;
+                  case 'uri':
+                  case strpos($targets[$target]['type'], 'valuesuggest:') === 0:
+                      $v['o:label'] = null;
+                      $v['@language'] = $targets[$target]['@language'];
+                      $v['@id'] = $value;
+                      break;
+                  case 'resource':
+                  case 'resource:item':
+                  case 'resource:media':
+                  case 'resource:itemset':
+                      $id = $this->findResourceFromIdentifier($value, null, $targets[$target]['type']);
+                      if ($id) {
+                          $v['value_resource_id'] = $id;
+                          $v['@language'] = null;
+                      } else {
+                          $v['has_error'] = true;
+
+                          // $this->logger->err(
+                          //     'Index #{index}: Resource id for value "{value}" cannot be found: the entry is skipped.', // @translate
+                          //     ['index' => $this->indexResource, 'value' => $value]
+                          // );
+                      }
+                      break;
+              }
+              if (empty($v['has_error'])) {
+                  $result[$targets[$target]['field']][] = $v;
+              }
+              break;
+          // Item is used only for media, that has only one item.
+          case $targets[$target]['field'] === 'o:item':
+          case 'id':
+              $result[$targets[$target]['field']] = ['o:id' => $value];
+              break;
+          case 'resource':
+              $result[$targets[$target]['field']][] = ['o:id' => $value];
+              break;
+          case 'boolean':
+              $result[$targets[$target]['field']] = in_array($value, ['false', false, 0, '0', 'off', 'close'], true)
+                  ? false
+                  : (bool) $value;
+              break;
+          case 'single':
+              // TODO Check email and owner.
+              $v = [];
+              $v['value'] = $value;
+              $result[$targets[$target]['field']] = $v;
+              break;
+          case 'custom':
+          default:
+              $v = [];
+              $v['value'] = $value;
+              if (isset($targets[$target]['@language'])) {
+                  $v['@language'] = $targets[$target]['@language'];
+              }
+              $v['type'] = empty($targets[$target]['type'])
+                  ? 'literal'
+                  : $targets[$target]['type'];
+              $result[$targets[$target]['field']][] = $v;
+              break;
+      }
+  }
+
+  /**
+   * Determine the type of field.
+   *
+   * @param string $field
+   * @return string
+   */
+  protected function isField($field)
+  {
+      return "resource";
+
+      $resources = [
+          'o:item',
+          'o:item_set',
+          'o:media',
+      ];
+      if (in_array($field, $resources)) {
+          return 'resource';
+      }
+      $ids = [
+          'o:resource_template',
+          'o:resource_class',
+          'o:owner',
+      ];
+      if (in_array($field, $ids)) {
+          return 'id';
+      }
+      $booleans = [
+          'o:is_open',
+          'o:is_public',
+      ];
+      if (in_array($field, $booleans)) {
+          return 'boolean';
+      }
+      $singleData = [
+          'o:email',
+      ];
+      if (in_array($field, $singleData)) {
+          return 'single';
+      }
+      return $this->bulk->isPropertyTerm($field)
+          ? 'property'
+          : 'custom';
+  }
+
+  /**
+   * Normalize a mapping.
+   *
+   * Mapping is either a single or a multiple list, either a target
+   * key or value, and either a xpath or a array:
+   * [Title => /xpath/to/data]
+   * [Title => object.to.data]
+   * [/xpath/to/data => Title]
+   * [object.to.data => Title]
+   * [[Title => /xpath/to/data]]
+   * [[Title => object.to.data]]
+   * [[/xpath/to/data => Title]]
+   * [[object.to.data => Title]]
+   *
+   * And the same mappings with a value as an array, for example:.
+   * [[object.to.data => [Title]]]
+   * The format is normalized into [[path/object => Title]].
+   *
+   * @param array $mapping
+   * @return array
+   */
+  protected function normalizeMapping(array $mapping)
+  {
+      if (empty($mapping)) {
+          return $mapping;
+      }
+
+      // Normalize the mapping to multiple data with source to target.
+      $keyValue = reset($mapping);
+      $isMultipleMapping = is_numeric(key($mapping));
+      if (!$isMultipleMapping) {
+          $mapping = $this->multipleFromSingle($mapping);
+          $keyValue = reset($mapping);
+      }
+
+      $value = reset($keyValue);
+      if (is_array($value)) {
+          $mapping = $this->multipleFromMultiple($mapping);
+          $keyValue = reset($mapping);
+      }
+
+      $key = key($keyValue);
+      $isTargetKey = strpos($key, ':') && strpos($key, '::') === false;
+      if ($isTargetKey) {
+          $mapping = $this->flipTargetToValues($mapping);
+      }
+
+      return $mapping;
+  }
+
+  /**
+   * Convert a single mapping to a multiple mapping.
+   *
+   * @param array $mapping
+   * @return array
+   */
+  protected function multipleFromSingle(array $mapping)
+  {
+      $result = [];
+      foreach ($mapping as $key => $value) {
+          $result[] = [$key => $value];
+      }
+      return $result;
+  }
+
+  /**
+   * Convert a multiple level mapping to a multiple mapping.
+   *
+   * @param array $mapping
+   * @return array
+   */
+  protected function multipleFromMultiple(array $mapping)
+  {
+      $result = [];
+      foreach ($mapping as $value) {
+          foreach ($value as $key => $val) {
+              foreach ($val as $v) {
+                  $result[] = [$key => $v];
+              }
+          }
+      }
+      return $result;
+  }
+
+  /**
+   * Flip keys and values of a full mapping.
+   *
+   * @param array $mapping
+   * @return array
+   */
+  protected function flipTargetToValues(array $mapping)
+  {
+      $result = [];
+      foreach ($mapping as $value) {
+          $result[] = [reset($value) => key($value)];
+      }
+      return $result;
+  }
+
+  public function extractStringToFile($filepath, $content)
+  {
+      if (!strlen($filepath)) {
+          throw new RuntimeException('Filepath string should be longer that zero character.');
+      }
+
+      if (!is_writeable($filepath)) {
+          throw new RuntimeException(sprintf('Filepath "%s" is not writeable. Check rights.', $filepath));
+      }
+
+      if (($handle = fopen($filepath, 'w')) === false) {
+          throw new RuntimeException(sprintf('Could not save file "%s".', $filepath));
+      }
+
+      $buffer = '';
+      $hasString = false;
+
+      fwrite($handle, $content);
+      fclose($handle);
+
+      // return $hasString ? $buffer : null;
+      return true;
+  }
+
+  // ----------------------------  pdf plugin  --------------------------------- //
+    protected $pdftkPath;
+
+    /**
+     * @var string
+     */
+    protected $executeStrategy;
+
+    /**
+     * @param string $pdftkPath
+     * @param string $executeStrategy
+     */
+    // public function __construct($pdftkPath, $executeStrategy)
+    // {
+    //     $this->pdftkPath = $pdftkPath;
+    //     $this->executeStrategy = $executeStrategy;
+    // }
+
+    /**
+     * Extract medadata from a pdf.
+     *
+     * @param string $filepath
+     * @return array
+     */
+    public function extractDataFromPdf($filepath)
+    {
+        $this->pdftkPath = "";
+        $this->executeStrategy = "exec";
+
+        $options = [];
+        if ($this->pdftkPath) {
+            $options['command'] = $this->pdftkPath;
+        }
+        if ($this->executeStrategy === 'exec') {
+            $options['useExec'] = true;
+        }
+
+        $pdf = new Pdf($filepath, $options);
+        $data = (string) $pdf->getData();
+        if (empty($data)) {
+            $error = $pdf->getError() ?: sprintf('Command pdftk unavailable or failed: %s', $pdf->getCommand()); // @translate
+            _log(sprintf('Unable to process pdf: %s', $error));
+
+            return [];
+        }
+
+        $result = [];
+
+        $regex = '~^InfoBegin\nInfoKey: (.+)\nInfoValue: (.+)$~m';
+        $matches = [];
+        preg_match_all($regex, $data, $matches, PREG_SET_ORDER, 0);
+        foreach ($matches as $match) {
+            $result[$match[1]] = $match[2];
+        }
+
+        $regex = '~^NumberOfPages: (\d+)$~m';
+        preg_match($regex, $data, $matches);
+        if ($matches[1]) {
+            $result['NumberOfPages'] = $matches[1];
+        }
+        return $result;
+    }
+}
