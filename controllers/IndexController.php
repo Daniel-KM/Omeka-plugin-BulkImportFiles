@@ -160,7 +160,8 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         $elementTable = $db->getTable('Element');
         $elementSetTable = $db->getTable('ElementSet');
 
-        $select_list = $elementTable->findPairsForSelectForm();
+        $select_list = $elementTable->findPairsForSelectForm(array('record_types' => array('All', 'Item')));
+
         $listTerms = array();
         foreach ($select_list as $elementSetName => $elements) {
             foreach ($elements as $elementId => $elementName) {
