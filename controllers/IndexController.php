@@ -135,7 +135,8 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
                   default:
                       $getId3 = new GetId3();
-                      $file_source = $getId3
+                      // TODO Fix GetId3 that uses create_function(), deprecated.
+                      $file_source = @$getId3
                           // ->setOptionMD5Data(true)
                           // ->setOptionMD5DataSource(true)
                           // ->setEncoding('UTF-8')
@@ -334,11 +335,12 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                 $file_path = $params['folder'] . '/';
                 foreach ($files as $file) {
                     $getId3 = new GetId3();
-                    $file_source = $getId3
-                      // ->setOptionMD5Data(true)
-                      // ->setOptionMD5DataSource(true)
-                      // ->setEncoding('UTF-8')
-                      ->analyze($file_path . $file);
+                    // TODO Fix GetId3 that uses create_function(), deprecated.
+                    $file_source = @$getId3
+                        // ->setOptionMD5Data(true)
+                        // ->setOptionMD5DataSource(true)
+                        // ->setEncoding('UTF-8')
+                        ->analyze($file_path . $file);
 
                     ++$total_files;
 
@@ -404,11 +406,12 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
             // $fileinfo = new \SplFileInfo($full_file_path);
 
             $getId3 = new GetId3();
-            $file_source = $getId3
-              // ->setOptionMD5Data(true)
-              // ->setOptionMD5DataSource(true)
-              // ->setEncoding('UTF-8')
-              ->analyze($full_file_path);
+            // TODO Fix GetId3 that uses create_function(), deprecated.
+            $file_source = @$getId3
+                // ->setOptionMD5Data(true)
+                // ->setOptionMD5DataSource(true)
+                // ->setEncoding('UTF-8')
+                ->analyze($full_file_path);
 
             $media_type = isset($file_source['mime_type']) ? $file_source['mime_type'] : 'undefined';
 
