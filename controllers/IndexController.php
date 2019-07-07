@@ -1,6 +1,10 @@
 <?php
 /**
  * Bulk Import Files Controller
+ *
+ * This is a backport of the module BulkImportFiles for Omeka S.
+ * Controller plugins helpers are currently integrated here.
+ * @todo Clean backport of the module for controller plugin helpers.
  */
 use mikehaertl\pdftk\Pdf;
 
@@ -93,7 +97,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
     public function getFilesAction()
     {
         $this->prepareFilesMaps();
-        $request = $this->getRequest();
+        // $request = $this->getRequest();
         $files = $_FILES;
         $files_data_for_view = array();
 
@@ -185,7 +189,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
             $file_content = "$media_type = media_type\n";
             $db = get_db();
             $elementTable = $db->getTable('Element');
-            $elementSetTable = $db->getTable('ElementSet');
+            // $elementSetTable = $db->getTable('ElementSet');
 
             foreach ($listterms_select as $term_item_name) {
                 foreach ($term_item_name['property'] as $term) {
@@ -204,7 +208,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                 if (file_exists($folder_path) && is_dir($folder_path)) {
                     $files = $this->listFilesInDir($folder_path);
                     $file_path = $folder_path . '/';
-                    foreach ($files as $file_index => $file) {
+                    foreach ($files as $file) {
                         if ($file != $omeka_file_id) {
                             continue;
                         }
@@ -236,6 +240,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
     public function addFileAction()
     {
+        $params = array();
         $params['media_type'] = $this->getParam('media_type');
 
         if (!empty($params['media_type'])) {
@@ -252,9 +257,6 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                 throw new RuntimeException(sprintf('Could not save file "%s" for writing.', $filepath));
             }
 
-            $buffer = '';
-            $hasString = false;
-
             $file_content = "$media_type = media_type\n";
 
             fwrite($handle, $file_content);
@@ -269,8 +271,11 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
     public function deleteFileAction()
     {
+        $params = array();
         $params['media_type'] = $this->getParam('media_type');
         $reloadURL = $this->view->url('bulk-import-files');
+
+        $request = array();
 
         if (!empty($params['media_type'])) {
             $file_name = $params['media_type'];
@@ -314,6 +319,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         $total_files_can_recognized = 0;
         $error = '';
 
+        $params = array();
         $params['folder'] = $this->getParam('folder');
 
         if (!empty($params['folder'])) {
@@ -369,8 +375,9 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
     {
         $this->prepareFilesMaps();
 
-        $baseUri = FILES_DIR;
+        // $baseUri = FILES_DIR;
 
+        $params = array();
         $params['data_for_recognize_row_id'] = $this->getParam('data_for_recognize_row_id');
         $params['data_for_recognize_single'] = $this->getParam('data_for_recognize_single');
         $params['directory'] = $this->getParam('directory');
@@ -388,7 +395,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
             // TODO Use api standard method, not direct creation.
             // Create new media via temporary factory.
 
-            $fileinfo = new \SplFileInfo($full_file_path);
+            // $fileinfo = new \SplFileInfo($full_file_path);
 
             $getId3 = new GetId3();
             $file_source = $getId3
@@ -597,7 +604,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                 $db = get_db();
                 $elementTable = $db->getTable('Element');
 
-                foreach ($files as $file_index => $file) {
+                foreach ($files as $file) {
                     $data = file_get_contents($file_path . $file);
                     $data = trim($data);
                     if (empty($data)) {
@@ -608,7 +615,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
                     $mediaType = null;
                     $current_maps = array();
-                    foreach ($data_rows as $key => $value) {
+                    foreach ($data_rows as $value) {
                         $value = array_map('trim', explode('=', $value));
                         if (count($value) !== 2) {
                             continue;
@@ -660,9 +667,9 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
     }
 
     /**
-     * @return \BulkImportFiles\Mvc\Controller\Plugin\MapData
+     * @return BulkImportFiles_IndexController
      */
-    public function mapData()
+    protected function mapData()
     {
         //$this->bulk = get_db()->getTable('Element')->findPairsForSelectForm();
         return $this;
@@ -677,7 +684,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
      * @return array A resource array by property, suitable for api creation
      * or update.
      */
-    public function array(array $input, array $mapping, $simpleExtract = false)
+    protected function array(array $input, array $mapping, $simpleExtract = false)
     {
         $mapping = $this->normalizeMapping($mapping);
         if (empty($input) || empty($mapping)) {
@@ -717,7 +724,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
      * @return array A resource array by property, suitable for api creation
      * or update.
      */
-    public function xml($filepath, array $mapping, $simpleExtract = false)
+    protected function xml($filepath, array $mapping, $simpleExtract = false)
     {
         $mapping = $this->normalizeMapping($mapping);
         if (empty($mapping)) {
@@ -767,7 +774,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         return $result->exchangeArray(array());
     }
 
-    public function pdf($filepath, array $mapping, $simpleExtract = false)
+    protected function pdf($filepath, array $mapping, $simpleExtract = false)
     {
         $mapping = $this->normalizeMapping($mapping);
         if (empty($mapping)) {
@@ -1074,7 +1081,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         return $result;
     }
 
-    public function extractStringToFile($filepath, $content)
+    protected function extractStringToFile($filepath, $content)
     {
         if (!strlen($filepath)) {
             throw new RuntimeException('Filepath string should be longer that zero character.');
@@ -1087,9 +1094,6 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         if (($handle = fopen($filepath, 'w')) === false) {
             throw new RuntimeException(sprintf('Could not save file "%s".', $filepath));
         }
-
-        $buffer = '';
-        $hasString = false;
 
         fwrite($handle, $content);
         fclose($handle);
@@ -1122,7 +1126,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
      * @param string $filepath
      * @return array
      */
-    public function extractDataFromPdf($filepath)
+    protected function extractDataFromPdf($filepath)
     {
         $this->pdftkPath = "";
         $this->executeStrategy = "exec";
