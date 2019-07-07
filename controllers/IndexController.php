@@ -73,6 +73,11 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
     public function indexAction()
     {
+        $this->forward('make-import');
+    }
+
+    public function mapShowAction()
+    {
         $this->prepareFilesMaps();
 
         // $view = new ViewModel;
@@ -84,12 +89,12 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         $this->view->filesMaps = $this->filesMaps;
     }
 
-    public function updateAction()
+    public function mapEditAction()
     {
         $this->view->value = "update";
     }
 
-    public function importAction()
+    public function makeImportAction()
     {
         $this->view->value = "import";
     }

@@ -1,21 +1,22 @@
-<nav id="section-nav" class="navigation vertical aaa">
+<nav id="section-nav" class="navigation vertical">
 <?php
     $navArray = array(
         array(
-            'label' => 'View mappings',
+            'label' => __('Make import'),
             'action' => 'index',
             'module' => 'bulk-import-files',
         ),
         array(
-            'label' => 'Create mapping',
-            'action' => 'update',
+            'label' => __('View mappings'),
+            'action' => 'map-show',
             'module' => 'bulk-import-files',
         ),
         array(
-            'label' => 'Make import',
-            'action' => 'import',
+            'label' => __('Create mapping'),
+            'action' => 'map-edit',
             'module' => 'bulk-import-files',
         ),
+
     );
     echo nav($navArray, 'admin_navigation_settings');
 ?>
