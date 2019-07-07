@@ -1,6 +1,5 @@
 <?php
 
-
 ?>
 
 <?php echo flash(); ?>
@@ -13,7 +12,6 @@
  * @var int $total_files_can_recognized
  * @var string $error
  */
-
 ?>
 <?php if ($this->error): ?>
     <div class="error"><?php echo $this->error; ?></div>

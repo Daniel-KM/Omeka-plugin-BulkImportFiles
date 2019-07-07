@@ -2,8 +2,7 @@
 /**
  * @var \Zend\View\Renderer\PhpRenderer $this
  */
-
-$result = [];
+$result = array();
 $result['status'] = 200;
 if (!empty($this->notice)) {
     $result['severity'] = 'notice';

@@ -6,8 +6,8 @@ if (!defined('BULKIMPORTFILES_PLUGIN_DIR')) {
 
 require_once __DIR__. '/vendor/autoload.php';
 
-class BulkImportFilesPlugin extends Omeka_Plugin_AbstractPlugin {
-
+class BulkImportFilesPlugin extends Omeka_Plugin_AbstractPlugin
+{
     // Hooks and Filters
     protected $_hooks = array(
         'define_acl'
@@ -28,7 +28,6 @@ class BulkImportFilesPlugin extends Omeka_Plugin_AbstractPlugin {
 
         // Specifically deny Admin users.
         $acl->deny('admin', 'BulkImportFiles_Index');
-
     }
 
     /**
@@ -39,15 +38,13 @@ class BulkImportFilesPlugin extends Omeka_Plugin_AbstractPlugin {
      */
     public function filterAdminNavigationMain($nav)
     {
-
         $nav[] = array(
             'label' => __('Bulk Import Files'),
             'uri' => url('bulk-import-files'),
-            'resource' => 'BulkImportFiles_Index'
+            'resource' => 'BulkImportFiles_Index',
         );
 
         return $nav;
-
     }
 
     public function hookAdminHead($args)

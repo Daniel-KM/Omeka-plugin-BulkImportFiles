@@ -5,7 +5,6 @@
  * @var array $listTerms
  * @var array $filesMaps
  */
-
 ?>
 
 <div class="messages">

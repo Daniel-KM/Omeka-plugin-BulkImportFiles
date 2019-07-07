@@ -34,7 +34,7 @@ class BulkImportFiles_Controller_Action_Helper_MapData extends Zend_Controller_A
      *
      * @var array
      */
-    protected $getId3IgnoredKeys = [
+    protected $getId3IgnoredKeys = array(
         'GETID3_VERSION',
         'filesize',
         'filename',
@@ -46,7 +46,7 @@ class BulkImportFiles_Controller_Action_Helper_MapData extends Zend_Controller_A
         'encoding',
         'mime_type',
         'md5_data',
-    ];
+    );
 
     /**
      * @param PluginManager $plugins
@@ -78,10 +78,10 @@ class BulkImportFiles_Controller_Action_Helper_MapData extends Zend_Controller_A
     {
         $mapping = $this->normalizeMapping($mapping);
         if (empty($input) || empty($mapping)) {
-            return [];
+            return array();
         }
 
-        $result = new ArrayObject([], ArrayObject::ARRAY_AS_PROPS);
+        $result = new ArrayObject(array(), ArrayObject::ARRAY_AS_PROPS);
 
         foreach ($mapping as $map) {
             $target = reset($map);
@@ -102,7 +102,7 @@ class BulkImportFiles_Controller_Action_Helper_MapData extends Zend_Controller_A
             }
         }
 
-        return $result->exchangeArray([]);
+        return $result->exchangeArray(array());
     }
 
     /**
@@ -118,13 +118,13 @@ class BulkImportFiles_Controller_Action_Helper_MapData extends Zend_Controller_A
     {
         $mapping = $this->normalizeMapping($mapping);
         if (empty($mapping)) {
-            return [];
+            return array();
         }
 
         $extractStringFromFile = $this->plugins()->get('extractStringFromFile');
         $xml = $extractStringFromFile($filepath, '<x:xmpmeta', '</x:xmpmeta>');
         if (empty($xml)) {
-            return [];
+            return array();
         }
 
         // Check if the xml is fully formed.
@@ -133,7 +133,7 @@ class BulkImportFiles_Controller_Action_Helper_MapData extends Zend_Controller_A
             $xml = '<?xml version="1.1" encoding="utf-8"?>' . $xml;
         }
 
-        $result = new ArrayObject([], ArrayObject::ARRAY_AS_PROPS);
+        $result = new ArrayObject(array(), ArrayObject::ARRAY_AS_PROPS);
 
         libxml_use_internal_errors(true);
         $doc = new DOMDocument();
@@ -162,14 +162,14 @@ class BulkImportFiles_Controller_Action_Helper_MapData extends Zend_Controller_A
             }
         }
 
-        return $result->exchangeArray([]);
+        return $result->exchangeArray(array());
     }
 
     public function pdf($filepath, array $mapping, $simpleExtract = false)
     {
         $mapping = $this->normalizeMapping($mapping);
         if (empty($mapping)) {
-            return [];
+            return array();
         }
 
         $extractDataFromPdf = $this->plugins()->get('extractDataFromPdf');
@@ -179,16 +179,16 @@ class BulkImportFiles_Controller_Action_Helper_MapData extends Zend_Controller_A
 
     protected function simpleExtract(ArrayObject $result, $value, $target, $source)
     {
-        $result[] = [
+        $result[] = array(
             'field' => $source,
             'target' => $target,
             'value' => $value,
-        ];
+        );
     }
 
     protected function appendValueToTarget(ArrayObject $result, $value, $target)
     {
-        static $targets = [];
+        static $targets = array();
 
         // First prepare the target keys.
         // TODO This normalization of the mapping can be done one time outside.
@@ -204,7 +204,7 @@ class BulkImportFiles_Controller_Action_Helper_MapData extends Zend_Controller_A
             // Check a data type.
             . '\s*(?:\^\^\s*([a-zA-Z][a-zA-Z0-9]*:[a-zA-Z][\w-]*|[a-zA-Z][\w-]*|))?$'
             . '~';
-        $matches = [];
+        $matches = array();
 
         if (isset($targets[$target])) {
             if (empty($targets[$target])) {
@@ -216,7 +216,7 @@ class BulkImportFiles_Controller_Action_Helper_MapData extends Zend_Controller_A
                 $targets[$target] = false;
                 return;
             }
-            $targets[$target] = [];
+            $targets[$target] = array();
             $targets[$target]['field'] = trim($matches[1]);
             $targets[$target]['@language'] = empty($matches[2]) ? null : trim($matches[2]);
             $targets[$target]['type'] = empty($matches[3]) ? null : trim($matches[3]);
@@ -229,7 +229,7 @@ class BulkImportFiles_Controller_Action_Helper_MapData extends Zend_Controller_A
         // Second, fill the result with the value.
         switch ($targets[$target]['is']) {
             case 'property':
-                $v = [];
+                $v = array();
                 $v['property_id'] = $targets[$target]['property_id'];
                 $v['type'] = $targets[$target]['type'] ?: 'literal';
                 switch ($v['type']) {
@@ -257,7 +257,7 @@ class BulkImportFiles_Controller_Action_Helper_MapData extends Zend_Controller_A
                             $v['has_error'] = true;
                             $this->logger->err(
                                 'Index #{index}: Resource id for value "{value}" cannot be found: the entry is skipped.', // @translate
-                                ['index' => $this->indexResource, 'value' => $value]
+                                array('index' => $this->indexResource, 'value' => $value)
                             );
                         }
                         break;
@@ -269,25 +269,25 @@ class BulkImportFiles_Controller_Action_Helper_MapData extends Zend_Controller_A
             // Item is used only for media, that has only one item.
             case $targets[$target]['field'] === 'o:item':
             case 'id':
-                $result[$targets[$target]['field']] = ['o:id' => $value];
+                $result[$targets[$target]['field']] = array('o:id' => $value);
                 break;
             case 'resource':
-                $result[$targets[$target]['field']][] = ['o:id' => $value];
+                $result[$targets[$target]['field']][] = array('o:id' => $value);
                 break;
             case 'boolean':
-                $result[$targets[$target]['field']] = in_array($value, ['false', false, 0, '0', 'off', 'close'], true)
+                $result[$targets[$target]['field']] = in_array($value, array('false', false, 0, '0', 'off', 'close'), true)
                     ? false
                     : (bool) $value;
                 break;
             case 'single':
                 // TODO Check email and owner.
-                $v = [];
+                $v = array();
                 $v['value'] = $value;
                 $result[$targets[$target]['field']] = $v;
                 break;
             case 'custom':
             default:
-                $v = [];
+                $v = array();
                 $v['value'] = $value;
                 if (isset($targets[$target]['@language'])) {
                     $v['@language'] = $targets[$target]['@language'];
@@ -308,32 +308,32 @@ class BulkImportFiles_Controller_Action_Helper_MapData extends Zend_Controller_A
      */
     protected function isField($field)
     {
-        $resources = [
+        $resources = array(
             'o:item',
             'o:item_set',
             'o:media',
-        ];
+        );
         if (in_array($field, $resources)) {
             return 'resource';
         }
-        $ids = [
+        $ids = array(
             'o:resource_template',
             'o:resource_class',
             'o:owner',
-        ];
+        );
         if (in_array($field, $ids)) {
             return 'id';
         }
-        $booleans = [
+        $booleans = array(
             'o:is_open',
             'o:is_public',
-        ];
+        );
         if (in_array($field, $booleans)) {
             return 'boolean';
         }
-        $singleData = [
+        $singleData = array(
             'o:email',
-        ];
+        );
         if (in_array($field, $singleData)) {
             return 'single';
         }
@@ -400,9 +400,9 @@ class BulkImportFiles_Controller_Action_Helper_MapData extends Zend_Controller_A
      */
     protected function multipleFromSingle(array $mapping)
     {
-        $result = [];
+        $result = array();
         foreach ($mapping as $key => $value) {
-            $result[] = [$key => $value];
+            $result[] = array($key => $value);
         }
         return $result;
     }
@@ -415,11 +415,11 @@ class BulkImportFiles_Controller_Action_Helper_MapData extends Zend_Controller_A
      */
     protected function multipleFromMultiple(array $mapping)
     {
-        $result = [];
+        $result = array();
         foreach ($mapping as $value) {
             foreach ($value as $key => $val) {
                 foreach ($val as $v) {
-                    $result[] = [$key => $v];
+                    $result[] = array($key => $v);
                 }
             }
         }
@@ -434,9 +434,9 @@ class BulkImportFiles_Controller_Action_Helper_MapData extends Zend_Controller_A
      */
     protected function flipTargetToValues(array $mapping)
     {
-        $result = [];
+        $result = array();
         foreach ($mapping as $value) {
-            $result[] = [reset($value) => key($value)];
+            $result[] = array(reset($value) => key($value));
         }
         return $result;
     }
@@ -462,12 +462,12 @@ class BulkImportFiles_Controller_Action_Helper_MapData extends Zend_Controller_A
      * @param array $ignoredKeys
      * @return array
      */
-    protected function flatArray(array $data, array $ignoredKeys = [])
+    protected function flatArray(array $data, array $ignoredKeys = array())
     {
-        $this->flatArray = [];
+        $this->flatArray = array();
         $this->_flatArray($data, $ignoredKeys);
         $result = $this->flatArray;
-        $this->flatArray = [];
+        $this->flatArray = array();
         return $result;
     }
 
@@ -478,16 +478,16 @@ class BulkImportFiles_Controller_Action_Helper_MapData extends Zend_Controller_A
      * @param array $ignoredKeys
      * @param string $keys
      */
-    private function _flatArray(array $data, array $ignoredKeys = [], $keys = null)
+    private function _flatArray(array $data, array $ignoredKeys = array(), $keys = null)
     {
         foreach ($data as $key => $value) {
             if (is_array($value)) {
                 $this->_flatArray($value, $ignoredKeys, $keys . '.' . $key);
             } elseif (!in_array($key, $ignoredKeys)) {
-                $this->flatArray[] = [
+                $this->flatArray[] = array(
                     'key' => trim($keys . '.' . $key, '.'),
                     'value' => $value,
-                ];
+                );
             }
         }
     }

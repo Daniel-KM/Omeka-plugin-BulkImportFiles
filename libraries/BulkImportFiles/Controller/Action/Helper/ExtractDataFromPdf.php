@@ -92,7 +92,7 @@ class ExtractDataFromPdf extends AbstractPlugin
         //     // TODO Extract page size.
         // ];
 
-        $options = [];
+        $options = array();
         if ($this->pdftkPath) {
             $options['command'] = $this->pdftkPath;
         }
@@ -105,13 +105,13 @@ class ExtractDataFromPdf extends AbstractPlugin
         if (empty($data)) {
             $error = $pdf->getError() ?: sprintf('Command pdftk unavailable or failed: %s', $pdf->getCommand()); // @translate
             $this->logger()->err(sprintf('Unable to process pdf: %s', $error));
-            return [];
+            return array();
         }
 
-        $result = [];
+        $result = array();
 
         $regex = '~^InfoBegin\nInfoKey: (.+)\nInfoValue: (.+)$~m';
-        $matches = [];
+        $matches = array();
         preg_match_all($regex, $data, $matches, PREG_SET_ORDER, 0);
         foreach ($matches as $match) {
             $result[$match[1]] = $match[2];
