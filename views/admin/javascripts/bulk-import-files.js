@@ -429,6 +429,7 @@ jQuery(document).ready(function () {
             type: 'post',
             beforeSend: function() {
                 jQuery('.modal-loader').show();
+                jQuery('.response').html('');
             },
             success: function (response) {
                 jQuery('.response').html(response);
