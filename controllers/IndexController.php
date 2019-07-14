@@ -77,179 +77,9 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         $this->forward('make-import');
     }
 
-    public function mapShowAction()
-    {
-        $this->prepareFilesMaps();
-
-        // $view = new ViewModel;
-        // $view->setVariable('filesMaps', $this->filesMaps);
-        // $view->setVariable('form', $form);
-        // require_once BULKIMPORTFILES_PLUGIN_DIR . '/forms/SettingsForm.php';
-        // $form = new BulkUsers_Form_Settings;
-        // $this->view->form = $form;
-        $this->view->filesMaps = $this->filesMaps;
-    }
-
-    public function mapEditAction()
-    {
-        $this->view->value = "update";
-    }
-
     public function makeImportAction()
     {
         $this->view->value = "import";
-    }
-
-    public function saveOptionsAction()
-    {
-        if (!$this->getRequest()->isXmlHttpRequest()) {
-            return;
-        }
-
-        $params = [];
-        $params['omeka_file_id'] = $this->getParam('omeka_file_id');
-        $params['media_type'] = $this->getParam('media_type');
-        $params['listterms_select'] = $this->getParam('listterms_select');
-
-        $error = '';
-        $request = '';
-
-        if (!empty($params['omeka_file_id'])) {
-            $omeka_file_id = $params['omeka_file_id'];
-            $media_type = $params['media_type'];
-            $listterms_select = $params['listterms_select'];
-
-            /** @var \Omeka\Api\Representation\ItemRepresentation $item */
-            $file_content = "$media_type = media_type\n";
-            $db = get_db();
-            $elementTable = $db->getTable('Element');
-            // $elementSetTable = $db->getTable('ElementSet');
-
-            foreach ($listterms_select as $term_item_name) {
-                foreach ($term_item_name['property'] as $term) {
-                    list($elementSetName, $elementName) = array_map('trim', explode(':', $term));
-                    $element = $elementTable->findByElementSetNameAndElementName($elementSetName, $elementName);
-                    if (!$element) {
-                        continue;
-                    }
-                    $file_content .= $term_item_name['field'] . ' = ' . $elementSetName . ' : ' . $elementName . "\n";
-                }
-            }
-
-            $folder_path = dirname(__DIR__) . '/data/mapping';
-            $response = false;
-            if (!empty($folder_path)) {
-                if (file_exists($folder_path) && is_dir($folder_path)) {
-                    $files = $this->listFilesInDir($folder_path);
-                    $file_path = $folder_path . '/';
-                    foreach ($files as $file) {
-                        if ($file != $omeka_file_id) {
-                            continue;
-                        }
-
-                        if (!is_writeable($file_path . $file)) {
-                            $error = __('Filepath "%s" is not writeable.', $file_path . $file); // @translate
-                        }
-
-                        $response = file_put_contents($file_path . $file, $file_content);
-                    }
-                } else {
-                    $error = __('Folder not exist'); // @translate;
-                }
-            } else {
-                $error = __('Can’t check empty folder'); // @translate;
-            }
-
-            if ($response) {
-                $request = __('Mapping of elements successfully updated.'); // @translate
-            } else {
-                $request = __('Can’t update mapping.'); // @translate
-            }
-        } else {
-            $request = __('Request empty.'); // @translate
-        }
-
-        $this->view->request = $error ?: $request;
-    }
-
-    public function addFileAction()
-    {
-        if (!$this->getRequest()->isXmlHttpRequest()) {
-            return;
-        }
-
-        $params = array();
-        $params['media_type'] = $this->getParam('media_type');
-
-        if (!empty($params['media_type'])) {
-            $media_type = $params['media_type'];
-
-            $file_name = 'map_' . explode('/', $media_type)[0] . '_' . explode('/', $media_type)[1];
-            $filepath = dirname(__DIR__) . '/data/mapping/' . $file_name . '.csv';
-
-            if (!strlen($filepath)) {
-                throw new RuntimeException('Filepath string should be longer that zero character.');
-            }
-
-            if (($handle = fopen($filepath, 'w')) === false) {
-                throw new RuntimeException(sprintf('Could not save file "%s" for writing.', $filepath));
-            }
-
-            $file_content = "$media_type = media_type\n";
-
-            fwrite($handle, $file_content);
-            fclose($handle);
-            $request = __('File successfully added!');
-        } else {
-            $request = __('Request empty.'); // @translate
-        }
-
-        $this->view->request = $request;
-    }
-
-    public function deleteFileAction()
-    {
-        if (!$this->getRequest()->isXmlHttpRequest()) {
-            return;
-        }
-
-        $params = array();
-        $params['media_type'] = $this->getParam('media_type');
-        $reloadURL = $this->view->url('bulk-import-files');
-
-        $request = array();
-
-        if (!empty($params['media_type'])) {
-            $file_name = $params['media_type'];
-
-            $filepath = dirname(__DIR__) . '/data/mapping/' . $file_name;
-
-            if (!strlen($filepath)) {
-                throw new RuntimeException('Filepath string should be longer that zero character.');
-            }
-
-            if (!is_writeable($filepath)) {
-                throw new RuntimeException(sprintf('File "%s" is not writeable. Check rights.', $filepath));
-            }
-
-            if (($handle = fopen($filepath, 'w')) === false) {
-                throw new RuntimeException(sprintf('Could not save file "%s" for writing.', $filepath));
-            }
-
-            fclose($handle);
-            unlink($filepath) or die("Couldn't delete file");
-
-            $request['state'] = true;
-            $request['reloadURL'] = $reloadURL;
-            $request['msg'] = __('File successfully deleted!');
-        } else {
-            $request['state'] = false;
-            $request['reloadURL'] = $reloadURL;
-            $request['msg'] = __('Request empty.');
-        }
-
-        $request = json_encode($request);
-        $this->view->request = $request;
     }
 
     public function getFilesAction()
@@ -645,6 +475,176 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         $this->view->notice = empty($notice) ? null : $notice;
         $this->view->warning = empty($warning) ? null : $warning;
         $this->view->error = empty($error) ? null : $error;
+    }
+
+    public function mapShowAction()
+    {
+        $this->prepareFilesMaps();
+
+        // $view = new ViewModel;
+        // $view->setVariable('filesMaps', $this->filesMaps);
+        // $view->setVariable('form', $form);
+        // require_once BULKIMPORTFILES_PLUGIN_DIR . '/forms/SettingsForm.php';
+        // $form = new BulkUsers_Form_Settings;
+        // $this->view->form = $form;
+        $this->view->filesMaps = $this->filesMaps;
+    }
+
+    public function mapEditAction()
+    {
+        $this->view->value = "update";
+    }
+
+    public function addFileAction()
+    {
+        if (!$this->getRequest()->isXmlHttpRequest()) {
+            return;
+        }
+
+        $params = array();
+        $params['media_type'] = $this->getParam('media_type');
+
+        if (!empty($params['media_type'])) {
+            $media_type = $params['media_type'];
+
+            $file_name = 'map_' . explode('/', $media_type)[0] . '_' . explode('/', $media_type)[1];
+            $filepath = dirname(__DIR__) . '/data/mapping/' . $file_name . '.csv';
+
+            if (!strlen($filepath)) {
+                throw new RuntimeException('Filepath string should be longer that zero character.');
+            }
+
+            if (($handle = fopen($filepath, 'w')) === false) {
+                throw new RuntimeException(sprintf('Could not save file "%s" for writing.', $filepath));
+            }
+
+            $file_content = "$media_type = media_type\n";
+
+            fwrite($handle, $file_content);
+            fclose($handle);
+            $request = __('File successfully added!');
+        } else {
+            $request = __('Request empty.'); // @translate
+        }
+
+        $this->view->request = $request;
+    }
+
+    public function deleteFileAction()
+    {
+        if (!$this->getRequest()->isXmlHttpRequest()) {
+            return;
+        }
+
+        $params = array();
+        $params['media_type'] = $this->getParam('media_type');
+        $reloadURL = $this->view->url('bulk-import-files');
+
+        $request = array();
+
+        if (!empty($params['media_type'])) {
+            $file_name = $params['media_type'];
+
+            $filepath = dirname(__DIR__) . '/data/mapping/' . $file_name;
+
+            if (!strlen($filepath)) {
+                throw new RuntimeException('Filepath string should be longer that zero character.');
+            }
+
+            if (!is_writeable($filepath)) {
+                throw new RuntimeException(sprintf('File "%s" is not writeable. Check rights.', $filepath));
+            }
+
+            if (($handle = fopen($filepath, 'w')) === false) {
+                throw new RuntimeException(sprintf('Could not save file "%s" for writing.', $filepath));
+            }
+
+            fclose($handle);
+            unlink($filepath) or die("Couldn't delete file");
+
+            $request['state'] = true;
+            $request['reloadURL'] = $reloadURL;
+            $request['msg'] = __('File successfully deleted!');
+        } else {
+            $request['state'] = false;
+            $request['reloadURL'] = $reloadURL;
+            $request['msg'] = __('Request empty.');
+        }
+
+        $request = json_encode($request);
+        $this->view->request = $request;
+    }
+
+    public function saveOptionsAction()
+    {
+        if (!$this->getRequest()->isXmlHttpRequest()) {
+            return;
+        }
+
+        $params = [];
+        $params['omeka_file_id'] = $this->getParam('omeka_file_id');
+        $params['media_type'] = $this->getParam('media_type');
+        $params['listterms_select'] = $this->getParam('listterms_select');
+
+        $error = '';
+        $request = '';
+
+        if (!empty($params['omeka_file_id'])) {
+            $omeka_file_id = $params['omeka_file_id'];
+            $media_type = $params['media_type'];
+            $listterms_select = $params['listterms_select'];
+
+            /** @var \Omeka\Api\Representation\ItemRepresentation $item */
+            $file_content = "$media_type = media_type\n";
+            $db = get_db();
+            $elementTable = $db->getTable('Element');
+            // $elementSetTable = $db->getTable('ElementSet');
+
+            foreach ($listterms_select as $term_item_name) {
+                foreach ($term_item_name['property'] as $term) {
+                    list($elementSetName, $elementName) = array_map('trim', explode(':', $term));
+                    $element = $elementTable->findByElementSetNameAndElementName($elementSetName, $elementName);
+                    if (!$element) {
+                        continue;
+                    }
+                    $file_content .= $term_item_name['field'] . ' = ' . $elementSetName . ' : ' . $elementName . "\n";
+                }
+            }
+
+            $folder_path = dirname(__DIR__) . '/data/mapping';
+            $response = false;
+            if (!empty($folder_path)) {
+                if (file_exists($folder_path) && is_dir($folder_path)) {
+                    $files = $this->listFilesInDir($folder_path);
+                    $file_path = $folder_path . '/';
+                    foreach ($files as $file) {
+                        if ($file != $omeka_file_id) {
+                            continue;
+                        }
+
+                        if (!is_writeable($file_path . $file)) {
+                            $error = __('Filepath "%s" is not writeable.', $file_path . $file); // @translate
+                        }
+
+                        $response = file_put_contents($file_path . $file, $file_content);
+                    }
+                } else {
+                    $error = __('Folder not exist'); // @translate;
+                }
+            } else {
+                $error = __('Can’t check empty folder'); // @translate;
+            }
+
+            if ($response) {
+                $request = __('Mapping of elements successfully updated.'); // @translate
+            } else {
+                $request = __('Can’t update mapping.'); // @translate
+            }
+        } else {
+            $request = __('Request empty.'); // @translate
+        }
+
+        $this->view->request = $error ?: $request;
     }
 
     /**

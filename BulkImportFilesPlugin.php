@@ -40,16 +40,16 @@ class BulkImportFilesPlugin extends Omeka_Plugin_AbstractPlugin
                 'BulkImportFiles_Index',
                 array(
                     'index',
-                    // 'map-show',
-                    // 'map-edit',
                     'make-import',
                     'get-files',
-                    // 'save-options',
-                    'add-files',
-                    'delete-file',
-                    'check-folder',
                     'check-files',
+                    'check-folder',
                     'process-import',
+                    // 'map-show',
+                    // 'map-edit',
+                    // 'add-file-type',
+                    // 'delete-file-type',
+                    // 'save-options',
                 )
             );
     }
