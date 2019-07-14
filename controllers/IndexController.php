@@ -102,6 +102,10 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
     public function saveOptionsAction()
     {
+        if (!$this->getRequest()->isXmlHttpRequest()) {
+            return;
+        }
+
         $params = [];
         $params['omeka_file_id'] = $this->getParam('omeka_file_id');
         $params['media_type'] = $this->getParam('media_type');
@@ -170,6 +174,10 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
     public function addFileAction()
     {
+        if (!$this->getRequest()->isXmlHttpRequest()) {
+            return;
+        }
+
         $params = array();
         $params['media_type'] = $this->getParam('media_type');
 
@@ -201,6 +209,10 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
     public function deleteFileAction()
     {
+        if (!$this->getRequest()->isXmlHttpRequest()) {
+            return;
+        }
+
         $params = array();
         $params['media_type'] = $this->getParam('media_type');
         $reloadURL = $this->view->url('bulk-import-files');
@@ -242,6 +254,10 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
     public function getFilesAction()
     {
+        if (!$this->getRequest()->isXmlHttpRequest()) {
+            return;
+        }
+
         $this->prepareFilesMaps();
         // $request = $this->getRequest();
         $files = $_FILES;
@@ -320,6 +336,10 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
     public function checkFolderAction()
     {
+        if (!$this->getRequest()->isXmlHttpRequest()) {
+            return;
+        }
+
         $this->prepareFilesMaps();
 
         $files_data = array();
@@ -382,6 +402,10 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
     public function processImportAction()
     {
+        if (!$this->getRequest()->isXmlHttpRequest()) {
+            return;
+        }
+
         $this->prepareFilesMaps();
 
         // $baseUri = FILES_DIR;
