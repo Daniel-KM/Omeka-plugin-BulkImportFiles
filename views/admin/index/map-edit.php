@@ -55,10 +55,33 @@ echo common('bulkimportfiles-nav');
         <p>
             <?= __('You may need to create mappings first, with the media type as title.') ?>
         </p>
-        <h4><?= __('Select folder') ?></h4>
-        <div><?= __('You can select folder with you files with any type (images, etc.) and configure it.') ?></div>
-        <input type="file" id="multiFiles" name="files[]" multiple="multiple" webkitdirectory mozdirectory msdirectory odirectory directory />
-        <button id="upload"><?= __('Upload') ?></button>
+        <p>
+            <?= __('You can select folder with you files with any type (images, etc.) and configure it.') ?>
+        </p>
+        <section class="ten columns alpha omega">
+            <fieldset id="fieldset-edit">
+                <div class="field">
+                    <div class="two columns alpha">
+                        <?= $this->formLabel('directory', __('Select folder')) ?>
+                    </div>
+                    <div class='inputs five columns omega'>
+                        <?= $this->formFile('files[]', array('id' => 'multiFiles', 'class' => 'fileinput button', 'multiple' => true, 'webkitdirectory' => true, 'mozdirectory' => true, 'msdirectory' => true, 'odirectory' => true, 'directory' => true)) ?>
+                        <p class="explanation">
+                        </p>
+                    </div>
+                </div>
+            </fieldset>
+            <fieldset id="fieldset-upload">
+                <div class="field">
+                    <div class="two columns alpha">
+                    </div>
+                    <div class='inputs five columns omega'>
+                        <?php // This is a hidden button for js. ?>
+                        <?= $this->formButton('upload', __('Upload'), array('id' => 'upload', 'type' => 'submit')) ?>
+                    </div>
+                </div>
+            </fieldset>
+        </section>
     </div>
 </div>
 
