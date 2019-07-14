@@ -199,7 +199,7 @@ jQuery(document).ready(function () {
         jQuery('#upload').click();
     });
 
-    jQuery('#upload').on('click', function (e) {
+    jQuery('.map-edit #upload').on('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
 
@@ -420,6 +420,8 @@ jQuery(document).ready(function () {
     }
 
     directory = '';
+
+    // Import by a directory on the server.
     jQuery('.make_import_form .check_button').click(function () {
         directory = {'folder' : jQuery('.make_import_form #directory').val()};
         url = basePath + '/admin/bulk-import-files/index/check-folder';
@@ -447,6 +449,47 @@ jQuery(document).ready(function () {
         return false;
     });
 
+    // Import by a directory on the computer.
+    jQuery('.make-import #upload').click(function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        url = basePath + '/admin/bulk-import-files/index/check-files';
+
+        var form_data = new FormData();
+        var ins = document.getElementById('multiFiles').files.length;
+        for (var x = 0; x < ins; x++) {
+            form_data.append('files[]', document.getElementById('multiFiles').files[x]);
+        }
+
+        jQuery.ajax({
+            url: url,
+            dataType:'html',
+            cache: false,
+            contentType: false,
+            processData: false,
+            data: form_data,
+            type: 'post',
+            beforeSend: function() {
+                jQuery('.modal-loader').show();
+                jQuery('.response').html('');
+            },
+            success: function (response) {
+                jQuery('.response').html(response);
+            },
+            error: function (response) {
+                jQuery('.response').html(response);
+            },
+            complete: function () {
+                jQuery('.modal-loader').hide();
+                action_for_recognize_files();
+            }
+        });
+
+        // console.log(form_data);
+        return false;
+    });
+
     make_action = false;
     data_for_recognize  = {};
     create_action = '';
@@ -461,6 +504,7 @@ jQuery(document).ready(function () {
         url = basePath + '/admin/bulk-import-files/index/process-import';
         directory = jQuery('.make_import_form #directory').val();
         jQuery('.directory').val(directory);
+        isServer = data_for_recognize['is_server'];
 
         if ((file_position_upload >= total_files_for_upload) || (typeof data_for_recognize['filenames'][file_position_upload] == 'undefined')) {
             clearTimeout(create_action);
@@ -472,15 +516,17 @@ jQuery(document).ready(function () {
             if (make_action == true) {
                 var rowId = data_for_recognize['row_id'][file_position_upload];
                 var row = jQuery('.response .isset_yes.row_id_' + rowId);
-                data_for_recognize_single = {
-                    'data_for_recognize_single' : data_for_recognize['filenames'][file_position_upload],
-                    'directory': directory,
-                    'delete_file': jQuery('#delete_file').is(':checked'),
-                    'data_for_recognize_row_id' : rowId,
+                data_process = {
+                    'is_server': isServer,
+                    'row_id' : rowId,
+                    'filename' : data_for_recognize['filenames'][file_position_upload],
+                    'source' : data_for_recognize['sources'][file_position_upload],
+                    'directory': isServer ? directory : null,
+                    'delete_file': isServer ? jQuery('#delete_file').is(':checked') : true,
                 };
                 jQuery.ajax({
                     url: url,
-                    data: data_for_recognize_single,
+                    data: data_process,
                     type: 'post',
                     beforeSend: function() {
                         make_action = false;
@@ -524,16 +570,24 @@ jQuery(document).ready(function () {
     function action_for_recognize_files() {
         jQuery('.js-recognize_files').click(function () {
             filenames = [];
+            sources = [];
             row_id = [];
+            isServer = jQuery('.response').find('.total_info .origin').data('origin') === 'server';
+
             jQuery('.response').find('.total_info').remove();
             jQuery('.response .isset_yes').each(function () {
-                filenames.push(jQuery(this).find('.filename').text());
-                row_id.push(jQuery(this).find('.filename').data('row-id'));
+                filedata = jQuery(this).find('.filename');
+                filenames.push(filedata.data('filename'));
+                sources.push(filedata.data('source'));
+                row_id.push(filedata.data('row-id'));
             });
+
             data_for_recognize = {
-                'directory': directory,
+                'is_server': isServer,
+                'directory': isServer ? directory : null,
                 'filenames': filenames,
-                'row_id': row_id
+                'sources': sources,
+                'row_id': row_id,
             }
 
             // console.log(data_for_recognize);

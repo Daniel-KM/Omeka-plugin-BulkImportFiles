@@ -48,6 +48,7 @@ class BulkImportFilesPlugin extends Omeka_Plugin_AbstractPlugin
                     'add-files',
                     'delete-file',
                     'check-folder',
+                    'check-files',
                     'process-import',
                 )
             );

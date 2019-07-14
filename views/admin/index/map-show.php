@@ -1,6 +1,9 @@
 <?php
 
-$head = array('title' => html_escape(__('Bulk Import Files')));
+$head = array(
+    'title' => html_escape(__('Bulk Import Files')),
+    'bodyclass' => 'bulk-import-files map-show',
+);
 
 echo head($head);
 echo common('bulkimportfiles-nav');

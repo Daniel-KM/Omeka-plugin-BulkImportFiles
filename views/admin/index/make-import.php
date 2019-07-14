@@ -1,13 +1,15 @@
 <?php
 
-$head = array('title' => html_escape(__('Bulk Import Files')));
+$head = array(
+    'title' => html_escape(__('Bulk Import Files')),
+    'bodyclass' => 'bulk-import-files make-import',
+);
 
 queue_css_file('bulk-import-files');
-queue_js_file('bulk-import-files');
-
 $script = 'var basePath = "' . PUBLIC_BASE_URL.'"';
 $this->headScript()
     ->appendScript($script);
+queue_js_file('bulk-import-files');
 
 echo head($head);
 echo common('bulkimportfiles-nav');
@@ -20,6 +22,10 @@ echo common('bulkimportfiles-nav');
     <section class="ten columns alpha omega">
         <fieldset id="fieldset-make_import_form">
             <legend><?= __('Select folder') ?></legend>
+            <p class="explanation">
+                <?= __('You can either select a folder on your computer or on the server.') ?>
+                <?= __('It is recommended to use the server for big import to allow to continue to use the browser and to avoid the server upload limits for total size and number of files.') ?>
+            </p>
             <div class="field">
                 <div class="two columns alpha">
                     <?= $this->formLabel('directory', __('Source directory on server')) ?>
@@ -39,7 +45,28 @@ echo common('bulkimportfiles-nav');
             </div>
             <div class="field">
                 <div class="two columns alpha">
-                    <?= $this->formLabel('delete_file', __('Delete original file from the folder?')) ?>
+                    <?= $this->formLabel('directory', __('Select folder on computer')) ?>
+                </div>
+                <div class='inputs five columns omega'>
+                    <?= $this->formFile('files[]', array('id' => 'multiFiles', 'class' => 'fileinput button', 'multiple' => true, 'webkitdirectory' => true, 'mozdirectory' => true, 'msdirectory' => true, 'odirectory' => true, 'directory' => true)) ?>
+                    <p class="explanation">
+                    </p>
+                </div>
+            </div>
+            <div class="field">
+                <div class="two columns alpha">
+                </div>
+                <div class='inputs five columns omega'>
+                    <?php // This is a hidden button for js. ?>
+                    <?= $this->formButton('upload', __('Upload'), array('id' => 'upload', 'type' => 'submit')) ?>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset id="fieldset-make_import_params">
+            <legend><?= __('Parameters') ?></legend>
+            <div class="field">
+                <div class="two columns alpha">
+                    <?= $this->formLabel('delete_file', __('Delete original file from the folder on the server?')) ?>
                 </div>
                 <div class='inputs five columns omega'>
                     <?= $this->formCheckbox('delete_file', true, array('checked' => false, 'id' => 'delete_file')) ?>

@@ -18,6 +18,7 @@
 
 }
 
+.make_import_form #upload,
 .files-map-block #upload {
     display: none;
 }

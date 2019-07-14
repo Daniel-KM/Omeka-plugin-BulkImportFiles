@@ -334,6 +334,104 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         $this->view->filesMaps = $this->filesMaps;
     }
 
+    public function checkFilesAction()
+    {
+        if (!$this->getRequest()->isXmlHttpRequest()) {
+            return;
+        }
+
+        // $request = $this->getRequest();
+        $files = $_FILES;
+
+        $this->prepareFilesMaps();
+
+        $files_data = array();
+        $total_files = 0;
+        $total_files_can_recognized = 0;
+        $error = '';
+
+        // Save the files temporary for the next request.
+        $dest = sys_get_temp_dir() . '/bulkimportfiles_upload/';
+        if (!file_exists($dest)) {
+            mkdir($dest, 0777, true);
+        }
+
+        if (!empty($files['files']['name'])) {
+            foreach ($files['files']['name'] as $key => $file_name) {
+                // Check name for security.
+                if (basename($file_name) !== $file_name) {
+                    $error = __('All files must have a regular name. Check ended.'); // @translate;
+                    break;
+                }
+
+                if ($files['files']['error'][$key] === UPLOAD_ERR_OK) {
+                    $getId3 = new GetId3();
+                    // TODO Fix GetId3 that uses create_function(), deprecated.
+                    $file_source = @$getId3
+                        // ->setOptionMD5Data(true)
+                        // ->setOptionMD5DataSource(true)
+                        // ->setEncoding('UTF-8')
+                        ->analyze($files['files']['tmp_name'][$key]);
+
+                    ++$total_files;
+
+                    $media_type = 'undefined';
+                    $file_isset_maps = 'no';
+
+                    if (isset($file_source['mime_type'])) {
+                        $media_type = $file_source['mime_type'];
+                        if (isset($this->filesMapsArray[$media_type])) {
+                            $file_isset_maps = 'yes';
+                            ++$total_files_can_recognized;
+                        }
+                    }
+
+                    $files_data[] = array(
+                        'source' => $file_name,
+                        'filename' => basename($files['files']['tmp_name'][$key]),
+                        'file_size' => $file_source['filesize'],
+                        'file_type' => $media_type,
+                        'file_isset_maps' => $file_isset_maps,
+                        'has_error' => $files['files']['error'][$key],
+                    );
+
+                    $full_file_path = $dest . basename($files['files']['tmp_name'][$key]);
+                    move_uploaded_file($files['files']['tmp_name'][$key], $full_file_path);
+                } else {
+                    if (isset($this->filesMapsArray[$files['files']['type'][$key]])) {
+                        $file_isset_maps = 'yes';
+                        ++$total_files_can_recognized;
+                    } else {
+                        $file_isset_maps = 'no';
+                    }
+
+                    $files_data[] = array(
+                        'source' => $files['files']['name'][$key],
+                        'filename' => basename($files['files']['tmp_name'][$key]),
+                        'file_size' => $files['files']['size'][$key],
+                        'file_type' => $files['files']['type'][$key],
+                        'file_isset_maps' => $file_isset_maps,
+                        'has_error' => $files['files']['error'][$key] || true,
+                    );
+                }
+            }
+
+            if (!$error && count($files_data) == 0) {
+                $error = __('Folder is empty'); // @translate;
+            }
+        } else {
+            $error = __('Can’t check empty folder'); // @translate;
+        }
+
+        $this->view->files_data = $files_data;
+        $this->view->total_files = $total_files;
+        $this->view->total_files_can_recognized = $total_files_can_recognized;
+        $this->view->error = $error;
+        $this->view->is_server = false;
+
+        $this->render('check-folder');
+    }
+
     public function checkFolderAction()
     {
         if (!$this->getRequest()->isXmlHttpRequest()) {
@@ -377,6 +475,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                     }
 
                     $files_data[] = array(
+                        'source' => $file,
                         'filename' => $file_source['filename'],
                         'file_size' => $file_source['filesize'],
                         'file_type' => $media_type,
@@ -398,6 +497,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         $this->view->total_files = $total_files;
         $this->view->total_files_can_recognized = $total_files_can_recognized;
         $this->view->error = $error;
+        $this->view->is_server = true;
     }
 
     public function processImportAction()
@@ -410,19 +510,27 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
         // $baseUri = FILES_DIR;
 
+        $isServer = $this->getParam('is_server') === 'true';
+
         $params = array();
-        $params['data_for_recognize_row_id'] = $this->getParam('data_for_recognize_row_id');
-        $params['data_for_recognize_single'] = $this->getParam('data_for_recognize_single');
+        $params['row_id'] = $this->getParam('row_id');
+        $params['filename'] = $this->getParam('filename');
+        $params['source'] = $this->getParam('source');
         $params['directory'] = $this->getParam('directory');
         $params['delete_file'] = $this->getParam('delete_file') === 'true';
 
-        $data_for_recognize_row_id = $params['data_for_recognize_row_id'];
+        $row_id = $params['row_id'];
         $notice = null;
         $warning = null;
         $error = null;
 
-        if (isset($params['data_for_recognize_single'])) {
-            $full_file_path = $params['directory'] . '/' . $params['data_for_recognize_single'];
+        if (isset($params['filename'])) {
+            if ($isServer) {
+                $full_file_path = $params['directory'] . '/' . $params['filename'];
+            } else {
+                $full_file_path = sys_get_temp_dir() . '/bulkimportfiles_upload/' . $params['filename'];
+            }
+
             $delete_file_action = $params['delete_file'];
 
             // TODO Use api standard method, not direct creation.
@@ -450,7 +558,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
             }
 
             if (!isset($this->filesMapsArray[$media_type])) {
-                $this->view->data_for_recognize_row_id = $data_for_recognize_row_id;
+                $this->view->row_id = $row_id;
                 $this->view->error = sprintf(__('The media type "%s" is not managed or has no mapping.'), $media_type);
                 return;
             }
@@ -488,7 +596,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
             if (!isset($data['Dublin Core']['Title'])) {
                 $data['Dublin Core']['Title'] = array(
-                    array('text' => $params['data_for_recognize_single'], 'html' => false)
+                    array('text' => $isServer ? $params['filename'] : $params['source'], 'html' => false)
                 );
             }
 
@@ -496,12 +604,14 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
             if ($delete_file_action) {
                 $tmpPath = $full_file_path;
             } else {
-                $tmpPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . basename($full_file_path);
+                $tmpPath = tempnam(sys_get_temp_dir(), 'omk_bif_');
                 copy($full_file_path, $tmpPath);
             }
 
             $hasNewItem = @insert_item(
-                array('public' => true),
+                array(
+                    'public' => true,
+                ),
                 $data,
                 // $fileMetadata
                 array(
@@ -513,6 +623,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                     Builder_Item::FILES => array(
                         array(
                             'source' => $tmpPath,
+                            'name' => basename($params['source']),
                         ),
                     ),
                 )
@@ -523,7 +634,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
             }
         }
 
-        $this->view->data_for_recognize_row_id = $data_for_recognize_row_id;
+        $this->view->row_id = $row_id;
         $this->view->notice = empty($notice) ? null : $notice;
         $this->view->warning = empty($warning) ? null : $warning;
         $this->view->error = empty($error) ? null : $error;
