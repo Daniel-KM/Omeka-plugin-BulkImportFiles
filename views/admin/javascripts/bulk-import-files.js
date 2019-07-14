@@ -310,13 +310,25 @@ jQuery(document).ready(function ($) {
             url: url,
             data: form_data,
             type: 'post',
+            beforeSend: function() {
+                $('.response').html('');
+                $('.response').removeClass('success warning error');
+            },
             success: function (response) {
-                $('.response').addClass('success');
-                $('.response').html(response);
+                $('.response').html(response.msg);
                 $('html, body').animate({scrollTop: 0}, 'slow');
+                if (response.state == true) {
+                    $('.response').addClass('success');
+                } else {
+                    $('.response').addClass('warning');
+                }
             },
             error: function (response) {
-                $('.response').html(response);
+                $('.response').html(response.msg);
+                $('html, body').animate({scrollTop: 0}, 'slow');
+                if (response.state == false) {
+                    $('.response').addClass('error');
+                }
             }
         });
     }
@@ -540,7 +552,6 @@ jQuery(document).ready(function ($) {
                 $('.response').removeClass('success warning error');
             },
             success: function (response) {
-                response = $.parseJSON(response);
                 $('.response').html(response.msg);
                 $('html, body').animate({scrollTop: 0}, 'slow');
                 if (response.state == true) {
@@ -551,7 +562,6 @@ jQuery(document).ready(function ($) {
                 }
             },
             error: function (response) {
-                response = $.parseJSON(response.responseText);
                 $('.response').html(response.msg);
                 $('html, body').animate({scrollTop: 0}, 'slow');
                 if (response.state == true) {

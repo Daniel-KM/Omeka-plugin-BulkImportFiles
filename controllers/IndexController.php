@@ -522,8 +522,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
             }
         }
 
-        $this->view->request = $request;
-        $this->render('request');
+        $this->_helper->json($request);
     }
 
     public function deleteFileTypeAction()
@@ -560,8 +559,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
             }
         }
 
-        $this->view->request = $request;
-        $this->render('request');
+        $this->_helper->json($request);
     }
 
     public function saveOptionsAction()
@@ -633,7 +631,10 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
             $request = __('Request empty.'); // @translate
         }
 
-        $this->view->request = $error ?: $request;
+        $result = $error
+            ? array('state' => false, 'msg' => $error)
+            : array('state' => true, 'msg' => $request);
+        $this->_helper->json($result);
     }
 
     /**
