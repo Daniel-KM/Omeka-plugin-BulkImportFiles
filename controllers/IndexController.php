@@ -517,6 +517,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         $params['filename'] = $this->getParam('filename');
         $params['source'] = $this->getParam('source');
         $params['directory'] = $this->getParam('directory');
+        $params['import_unmapped'] = $this->getParam('import_unmapped') === 'true';
         $params['delete_file'] = $this->getParam('delete_file') === 'true';
 
         $row_id = $params['row_id'];
@@ -557,40 +558,46 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                 }
             }
 
-            if (!isset($this->filesMapsArray[$media_type])) {
-                $this->view->row_id = $row_id;
-                $this->view->error = sprintf(__('The media type "%s" is not managed or has no mapping.'), $media_type);
-                return;
-            }
-
-            $filesMapsArray = $this->filesMapsArray[$media_type];
-
-            unset($filesMapsArray['media_type']);
-            unset($filesMapsArray['item_id']);
-
-            // Use xml or array according to item mapping.
-            $query = reset($filesMapsArray);
-            $query = $query ? reset($query) : null;
-            $isXpath = $query && strpos($query, '/') !== false;
-
-            if ($isXpath) {
-                $data = $this->mapData()->xml($full_file_path, $filesMapsArray);
-            } else {
-                switch ($media_type) {
-                    case 'application/pdf':
-                        $data = $this->mapData()->pdf($full_file_path, $filesMapsArray);
-                        break;
-                    default:
-                        $data = $this->mapData()->array($file_source, $filesMapsArray);
-                        break;
+            $isMapped = isset($this->filesMapsArray[$media_type]);
+            if (!$isMapped) {
+                if (!$params['import_unmapped']) {
+                    $this->view->row_id = $row_id;
+                    $this->view->error = sprintf(__('The media type "%s" is not managed or has no mapping.'), $media_type);
+                    return;
                 }
-            }
 
-            if (count($data) <= 0) {
-                if ($query) {
-                    $warning = __('No metadata to import. You may see log for more info.'); // @translate
+                $data = [];
+                $notice = __('No mapping for this file.'); // @translate
+            } else {
+                $filesMapsArray = $this->filesMapsArray[$media_type];
+
+                unset($filesMapsArray['media_type']);
+                unset($filesMapsArray['item_id']);
+
+                // Use xml or array according to item mapping.
+                $query = reset($filesMapsArray);
+                $query = $query ? reset($query) : null;
+                $isXpath = $query && strpos($query, '/') !== false;
+
+                if ($isXpath) {
+                    $data = $this->mapData()->xml($full_file_path, $filesMapsArray);
                 } else {
-                    $notice = __('No metadata: mapping is empty.'); // @translate
+                    switch ($media_type) {
+                        case 'application/pdf':
+                            $data = $this->mapData()->pdf($full_file_path, $filesMapsArray);
+                            break;
+                        default:
+                            $data = $this->mapData()->array($file_source, $filesMapsArray);
+                            break;
+                    }
+                }
+
+                if (count($data) <= 0) {
+                    if ($query) {
+                        $warning = __('No metadata to import. You may see log for more info.'); // @translate
+                    } else {
+                        $notice = __('No metadata: mapping is empty.'); // @translate
+                    }
                 }
             }
 

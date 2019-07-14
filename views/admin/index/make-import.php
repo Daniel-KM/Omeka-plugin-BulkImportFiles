@@ -66,10 +66,21 @@ echo common('bulkimportfiles-nav');
             <legend><?= __('Parameters') ?></legend>
             <div class="field">
                 <div class="two columns alpha">
-                    <?= $this->formLabel('delete_file', __('Delete original file from the folder on the server?')) ?>
+                    <?= $this->formLabel('import_unmapped', __('Import unmapped files')) ?>
                 </div>
                 <div class='inputs five columns omega'>
-                    <?= $this->formCheckbox('delete_file', true, array('checked' => false, 'id' => 'delete_file')) ?>
+                    <?= $this->formCheckbox('import_unmapped') ?>
+                    <p class="explanation">
+                        <?= __('Allow to import all files of a folder. Unmapped files will be imported without metadata, except the file name as title.') ?>
+                    </p>
+                </div>
+            </div>
+            <div class="field">
+                <div class="two columns alpha">
+                    <?= $this->formLabel('delete_file', __('Delete original file from the folder on the server')) ?>
+                </div>
+                <div class='inputs five columns omega'>
+                    <?= $this->formCheckbox('delete_file') ?>
                     <p class="explanation">
                         <?= __('Do you want to delete a file from the source directory after it has been imported? If so, the directory must be server-writable.') ?>
                     </p>

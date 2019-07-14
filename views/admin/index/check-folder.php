@@ -38,7 +38,7 @@
             <tbody>
                 <?php $i = 1; ?>
                 <?php foreach ($files_data as $file): ?>
-                    <tr class="isset_<?= $file['file_isset_maps'] ?> row_id_<?= $i ?> <?= empty($file['error']) ? '' : 'error' ?>">
+                    <tr class="file_data isset_<?= $file['file_isset_maps'] ?> row_id_<?= $i ?> <?= empty($file['error']) ? '' : 'error' ?>">
                         <td><?= $i ?></td>
                         <td class="filename" data-row-id="<?= $i ?>" data-filename="<?= $file['filename'] ?>" data-source="<?= $file['source'] ?>" data-has-error="<?= empty($file['error']) ? '0' : '1' ?>">
                             <?= $is_server ? $file['filename'] : $file['source'] ?>

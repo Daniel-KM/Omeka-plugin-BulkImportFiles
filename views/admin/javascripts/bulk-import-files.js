@@ -505,6 +505,7 @@ jQuery(document).ready(function () {
         directory = jQuery('.make_import_form #directory').val();
         jQuery('.directory').val(directory);
         isServer = data_for_recognize['is_server'];
+        importUnmapped = jQuery('#import_unmapped').is(':checked');
 
         if ((file_position_upload >= total_files_for_upload) || (typeof data_for_recognize['filenames'][file_position_upload] == 'undefined')) {
             clearTimeout(create_action);
@@ -515,13 +516,16 @@ jQuery(document).ready(function () {
 
             if (make_action == true) {
                 var rowId = data_for_recognize['row_id'][file_position_upload];
-                var row = jQuery('.response .isset_yes.row_id_' + rowId);
+                var row = importUnmapped
+                    ? jQuery('.response .file_data.row_id_' + rowId)
+                    : jQuery('.response .isset_yes.row_id_' + rowId);
                 data_process = {
                     'is_server': isServer,
                     'row_id' : rowId,
                     'filename' : data_for_recognize['filenames'][file_position_upload],
                     'source' : data_for_recognize['sources'][file_position_upload],
                     'directory': isServer ? directory : null,
+                    'import_unmapped': importUnmapped,
                     'delete_file': isServer ? jQuery('#delete_file').is(':checked') : true,
                 };
                 jQuery.ajax({
@@ -575,7 +579,11 @@ jQuery(document).ready(function () {
             isServer = jQuery('.response').find('.total_info .origin').data('origin') === 'server';
 
             jQuery('.response').find('.total_info').remove();
-            jQuery('.response .isset_yes').each(function () {
+            importUnmapped = jQuery('#import_unmapped').is(':checked');
+            rows =importUnmapped
+                ? jQuery('.response .file_data')
+                : jQuery('.response .isset_yes')
+            rows.each(function () {
                 filedata = jQuery(this).find('.filename');
                 filenames.push(filedata.data('filename'));
                 sources.push(filedata.data('source'));
