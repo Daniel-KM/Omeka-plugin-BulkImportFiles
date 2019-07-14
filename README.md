@@ -1,7 +1,7 @@
 Bulk Import Files (plugin for Omeka)
 ====================================
 
-[Bulk Import Files] is a plugin for [Omeka Classic] that allows to import files 
+[Bulk Import Files] is a plugin for [Omeka Classic] that allows to import files
 in bulk with their internal metadata (for example exif, iptc and xmp for images,
 audio and video, or pdf properties, etc.).
 
@@ -60,7 +60,7 @@ For example, for the `JPG` format, the values are the one that are exposed via
 the following xml paths (`xmp` is xml and provides all `iptc` and `exif` metadata):
 
 ```
-Dublin Core : Title = image/jpeg
+media_type = image/jpeg
 Dublin Core : Title = /x:xmpmeta/rdf:RDF/rdf:Description/@xmp:Label
 Dublin Core : Description = /x:xmpmeta/rdf:RDF/rdf:Description/@xmp:Caption
 Dublin Core : Date = /x:xmpmeta/rdf:RDF/rdf:Description/@xmp:CreateDate
@@ -75,7 +75,7 @@ as title, if any.
 If you prefer to use `exif` or `iptc`, here is the equivalent config:
 
 ```
-Dublin Core : Title = image/jpeg
+media_type = image/jpeg
 Dublin Core : Title = iptc.IPTCApplication.Headline
 Dublin Core : Description = iptc.IPTCApplication.Caption
 Dublin Core : Date = jpg.exif.EXIF.DateTimeOriginal
@@ -88,6 +88,9 @@ Dublin Core : Subject = iptc.IPTCApplication.Keywords.3
 Dublin Core : Subject = iptc.IPTCApplication.Keywords.4
 ```
 
+The order of the mapping can be the opposite (`iptc.IPTCApplication.Headline = Dublin Core : Title`),
+but all the maps should be in the same order.
+
 Note that metadata can be slighly different between standards.
 
 These items should be kept private, else they will be displayed in public.
@@ -95,7 +98,7 @@ These items should be kept private, else they will be displayed in public.
 Once saved, all the specific items can be checked in the main menu `Bulk import files`
 on the main sidebar.
 
-### Assistant to create or update a template
+### Assistant to create or update a mapping
 
 An assistant is available to create or update a mapping via the second
 sub-menu. Simply choose a directory where the files you want to import are
@@ -183,4 +186,3 @@ Copyright
 [FSF]: https://www.fsf.org
 [OSI]: http://opensource.org
 [Daniel-KM]: https://github.com/Daniel-KM "Daniel Berthereau"
-
