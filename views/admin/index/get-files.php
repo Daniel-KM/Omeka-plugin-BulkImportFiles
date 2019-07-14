@@ -53,16 +53,21 @@
                         <a data-sidebar-content-url="" class="o-icon-more sidebar-content"
                            href="#"
                            title="<?= __('Show all data') ?>"
-                           aria-label="<?= __('Show all data') ?>" style="font-size: 30px; line-height: 15px;">...</a>
+                           aria-label="<?= __('Show all data') ?>" style="font-size: 30px; line-height: 15px;">…</a>
                     </div>
 
                     <div class="full_info">
                         <table>
                             <tr>
-                                <td><?php echo count($files_data['source_data']) ? sprintf(__('%d available fields'), count($files_data['source_data'])) : __('No available fields'); ?>
+                                <td>
+                                    <?php if (count($files_data['source_data'])): ?>
+                                    <?= sprintf(__('%d available fields'), count($files_data['source_data'])) ?>
                                     <div class="js-save-button">
                                         <button type="submit" name="add-item-submit"><?= __('Save') ?></button>
                                     </div>
+                                    <?php else: ?>
+                                    <?= __('No available fields') ?>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                             <tr>
