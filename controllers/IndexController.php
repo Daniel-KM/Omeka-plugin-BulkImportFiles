@@ -94,8 +94,12 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         $files_data_for_view = array();
 
         foreach ($files['files']['name'] as $key => $file_name) {
-            $file = array();
+            // Skip dot files.
+            if (strpos($file_name, '.') === 0) {
+                continue;
+            }
 
+            $file = array();
             $file['type'] = $files['files']['type'][$key];
             $file['name'] = $files['files']['name'][$key];
             $file['tmp_name'] = $files['files']['tmp_name'][$key];
@@ -188,6 +192,11 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
         if (!empty($files['files']['name'])) {
             foreach ($files['files']['name'] as $key => $file_name) {
+                // Skip dot files.
+                if (strpos($file_name, '.') === 0) {
+                    continue;
+                }
+
                 // Check name for security.
                 if (basename($file_name) !== $file_name) {
                     $error = __('All files must have a regular name. Check ended.'); // @translate;
@@ -281,6 +290,10 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         if (!empty($params['folder'])) {
             if (file_exists($params['folder']) && is_dir($params['folder'])) {
                 $files = $this->listFilesInDir($params['folder']);
+                // Skip dot files.
+                $files = array_filter($files, function($v) {
+                    return strpos($v, '.') !== 0;
+                });
                 $file_path = $params['folder'] . '/';
                 foreach ($files as $file) {
                     $getId3 = new GetId3();
