@@ -32,7 +32,7 @@ function delete_file_action(media_type) {
         'media_type': media_type,
     }
 
-    if(!confirm("Do you want to delete this file type?")){
+    if (!confirm('Do you want to delete this file type?')) {
         return;
     }
 
@@ -75,15 +75,13 @@ jQuery(document).ready(function () {
     // available_maps_html += '<div>';
     //
     // jQuery.each(available_maps, function (key, val) {
-    //     available_maps_html += '<div class="field js-maps-' + val + '">'+key+' - <a class="button">' + val + '</a></div>';
+    //     available_maps_html += '<div class="field js-maps-' + val + '">' + key + ' - <a class="button">' + val + '</a></div>';
     // })
     //
     // available_maps_html += '</div>';
     //
     //
     // jQuery('.modulePreContent.module_BulkImportFiles').append(available_maps_html);
-
-
 
     jQuery('#flup').change(function (event) {
 
@@ -172,7 +170,6 @@ jQuery(document).ready(function () {
         // });
         // return false;
 
-
         // jQuery.each(files , function() {
         //
         // });
@@ -199,12 +196,10 @@ jQuery(document).ready(function () {
 
     jQuery('#multiFiles').change(function (event) {
         // console.log('change');
-
         jQuery('#upload').click();
     });
 
     jQuery('#upload').on('click', function (e) {
-
         e.preventDefault();
         e.stopPropagation();
 
@@ -236,7 +231,6 @@ jQuery(document).ready(function () {
                 jQuery('.response').html(response);
             }
         });
-
 
         // jQuery.ajax({
         //     url: url,
@@ -426,13 +420,9 @@ jQuery(document).ready(function () {
     }
 
     directory = '';
-
     jQuery('.make_import_form .check_button').click(function () {
-
         directory = {'folder' : jQuery('.make_import_form #directory').val()};
-
         url = basePath + '/admin/bulk-import-files/index/check-folder';
-
         jQuery.ajax({
             url: url,
             data: directory,
@@ -453,7 +443,6 @@ jQuery(document).ready(function () {
         });
 
         // console.log(directory);
-
         return false;
     });
 
@@ -528,24 +517,18 @@ jQuery(document).ready(function () {
             } else {
                 clearTimeout(create_action);
             }
-
         }
-
     }
 
     function action_for_recognize_files() {
         jQuery('.js-recognize_files').click(function () {
-
             filenames = [];
             row_id = [];
-
             jQuery('.response').find('.total_info').remove();
-
             jQuery('.response .isset_yes').each(function () {
                 filenames.push(jQuery(this).find('.filename').text());
                 row_id.push(jQuery(this).find('.filename').data('row-id'));
             });
-
             data_for_recognize = {
                 'directory': directory,
                 'filenames': filenames,
@@ -557,9 +540,7 @@ jQuery(document).ready(function () {
             total_files_for_upload = data_for_recognize['filenames'].length;
             make_action = true;
             create_action = setTimeout(make_single_file_upload(file_position_upload), 1000);
-
         });
-
     }
 
     jQuery('#delete-file').click(function () {

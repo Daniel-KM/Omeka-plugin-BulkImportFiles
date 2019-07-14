@@ -16,8 +16,8 @@ echo common('bulkimportfiles-nav');
 <?php echo flash(); ?>
 
 <h1>
-	<span class="subhead"><?php echo __('Make bulk import files');?></span>
-	<span class="title"><?php echo __('Bulk import files'); ?></span>
+    <span class="subhead"><?php echo __('Make bulk import files');?></span>
+    <span class="title"><?php echo __('Bulk import files'); ?></span>
 </h1>
 <form method="post" class="make_import_form">
     <div class="field required">

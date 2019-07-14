@@ -29,18 +29,18 @@ echo common('bulkimportfiles-nav');
 
 ?>
 <h1>
-	<span class="subhead"><?php echo __('Create/configure mappings');?></span>
-	<span class="title"><?php echo __('Bulk import files'); ?></span>
+    <span class="subhead"><?php echo __('Create/configure mappings');?></span>
+    <span class="title"><?php echo __('Bulk import files'); ?></span>
 </h1>
 
 <form method="POST" name="importform" id="importform"><fieldset id="page-actions">
-	<?php //echo $this->formCollection($form, false); ?>
+    <?php //echo $this->formCollection($form, false); ?>
 
-	<div class="selected-files">
-	</div>
+    <div class="selected-files">
+    </div>
 
-	<div class="selected-files-source">
-	</div>
+    <div class="selected-files-source">
+    </div>
 </form>
 
 <div class="files-map-block">

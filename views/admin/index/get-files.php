@@ -30,9 +30,9 @@
                     <?= $files_data['file']['name']; ?>
                 </span>
                 <span>
-                    <span><?php __('Media type') ?></span>
+                    <span><?= __('Media type') ?></span>
                     <?php if (isset($files_data['file']['item_id'])): ?>
-                        <a onclick="delete_file_action('<?php echo $files_data['file']['item_id']; ?>')" style="color:black;" target="_blank" class="underline_link" title="<?= __('Click for delete') ?>" href="#" url="<?php echo $this->url('admin/bulk-import-files').'/index/delete?arg_file='.$files_data['file']['item_id'];?>">
+                        <a onclick="delete_file_action('<?php echo $files_data['file']['item_id']; ?>')" style="color:black;" target="_blank" class="underline_link" title="<?= __('Click for delete') ?>" href="#" url="<?php echo $this->url('admin/bulk-import-files') . '/index/delete?arg_file=' . $files_data['file']['item_id']; ?>">
                             <?php echo $files_data['file']['type']; ?>
                         </a>
                         <input type="hidden" value="<?= $files_data['file']['item_id']; ?>" class="omeka_file_id">
@@ -40,7 +40,7 @@
                     <?php else: ?>
                         <?php echo $files_data['file']['type']; ?>
                         <span class="errors"><?= __('[Type is not defined]') ?></span>
-                        <button target="_blank" class="add_file_button" onClick="add_file_action('<?php echo $files_data['file']['type']; ?>')">Add</button>
+                        <button target="_blank" class="add_file_button" onClick="add_file_action('<?php echo $files_data['file']['type']; ?>')"><?= __('Add') ?></button>
                     <?php endif; ?>
                 </span>
                 <span>
@@ -192,7 +192,7 @@
     <div class="listterms_with_action">
         <select class="listterms_select">
             <?php foreach ($listTerms as $key => $val): ?>
-                <option value="<?= $key ?>"><?= $val; ?></option>
+                <option value="<?= $key ?>"><?= $val ?></option>
             <?php endforeach; ?>
         </select>
         <div class="js-action-property-button">

@@ -8,7 +8,7 @@
  */
 use mikehaertl\pdftk\Pdf;
 
-//use GetId3\GetId3Core as GetId3;
+// use GetId3\GetId3Core as GetId3;
 require_once dirname(__DIR__)."/../../application/libraries/getid3/getid3.php";
 
 class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionController
@@ -43,31 +43,32 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
     protected $directory;
 
     protected $ignoredKeys = array(
-      'GETID3_VERSION',
-      'filesize',
-      'filename',
-      'filepath',
-      'filenamepath',
-      'avdataoffset',
-      'avdataend',
-      'fileformat',
-      'encoding',
-      'mime_type',
-      'md5_data',
-  );
+        'GETID3_VERSION',
+        'filesize',
+        'filename',
+        'filepath',
+        'filenamepath',
+        'avdataoffset',
+        'avdataend',
+        'fileformat',
+        'encoding',
+        'mime_type',
+        'md5_data',
+    );
+
     protected $getId3IgnoredKeys = array(
-      'GETID3_VERSION',
-      'filesize',
-      'filename',
-      'filepath',
-      'filenamepath',
-      'avdataoffset',
-      'avdataend',
-      'fileformat',
-      'encoding',
-      'mime_type',
-      'md5_data',
-  );
+        'GETID3_VERSION',
+        'filesize',
+        'filename',
+        'filepath',
+        'filenamepath',
+        'avdataoffset',
+        'avdataend',
+        'fileformat',
+        'encoding',
+        'mime_type',
+        'md5_data',
+    );
 
     protected $bulk;
 
@@ -127,32 +128,32 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                 unset($filesMapsArray['item_id']);
 
                 switch ($media_type) {
-                  case 'application/pdf':
-                      $data = $this->extractDataFromPdf($file['tmp_name']);
-                      $this->parsed_data = $this->flatArray($data);
-                      $data = $this->mapData()->array($data, $filesMapsArray, true);
-                      break;
+                    case 'application/pdf':
+                        $data = $this->extractDataFromPdf($file['tmp_name']);
+                        $this->parsed_data = $this->flatArray($data);
+                        $data = $this->mapData()->array($data, $filesMapsArray, true);
+                        break;
 
-                  default:
-                      $getId3 = new GetId3();
-                      // TODO Fix GetId3 that uses create_function(), deprecated.
-                      $file_source = @$getId3
-                          // ->setOptionMD5Data(true)
-                          // ->setOptionMD5DataSource(true)
-                          // ->setEncoding('UTF-8')
-                          ->analyze($file['tmp_name']);
-                      $this->parsed_data = $this->flatArray($file_source, $this->ignoredKeys);
-                      $data = $this->mapData()->array($file_source, $filesMapsArray, true);
-                      break;
-              }
+                    default:
+                        $getId3 = new GetId3();
+                        // TODO Fix GetId3 that uses create_function(), deprecated.
+                        $file_source = @$getId3
+                            // ->setOptionMD5Data(true)
+                            // ->setOptionMD5DataSource(true)
+                            // ->setEncoding('UTF-8')
+                            ->analyze($file['tmp_name']);
+                        $this->parsed_data = $this->flatArray($file_source, $this->ignoredKeys);
+                        $data = $this->mapData()->array($file_source, $filesMapsArray, true);
+                        break;
+                }
             }
 
             $files_data_for_view[] = array(
-              'file' => $file,
-              'source_data' => $this->parsed_data,
-              'recognized_data' => $data,
-              'errors' => $errors,
-          );
+                'file' => $file,
+                'source_data' => $this->parsed_data,
+                'recognized_data' => $data,
+                'errors' => $errors,
+            );
         }
 
         $this->view->files_data_for_view = $files_data_for_view;
@@ -356,11 +357,11 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                     }
 
                     $files_data[] = array(
-                      'filename' => $file_source['filename'],
-                      'file_size' => $file_source['filesize'],
-                      'file_type' => $media_type,
-                      'file_isset_maps' => $file_isset_maps,
-                  );
+                        'filename' => $file_source['filename'],
+                        'file_size' => $file_source['filesize'],
+                        'file_type' => $media_type,
+                        'file_isset_maps' => $file_isset_maps,
+                    );
                 }
 
                 if (count($files_data) == 0) {
@@ -444,13 +445,13 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                 $data = $this->mapData()->xml($full_file_path, $filesMapsArray);
             } else {
                 switch ($media_type) {
-                  case 'application/pdf':
-                      $data = $this->mapData()->pdf($full_file_path, $filesMapsArray);
-                      break;
-                  default:
-                      $data = $this->mapData()->array($file_source, $filesMapsArray);
-                      break;
-              }
+                    case 'application/pdf':
+                        $data = $this->mapData()->pdf($full_file_path, $filesMapsArray);
+                        break;
+                    default:
+                        $data = $this->mapData()->array($file_source, $filesMapsArray);
+                        break;
+                }
             }
 
             if (count($data) <= 0) {
@@ -461,25 +462,24 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                 }
             }
 
-            if (!isset($data['Dublin Core']) || !isset($data['Dublin Core']['Title'])) {
-                $data['Dublin Core']['Title'] =
-              array(
-                  array('text' => $params['data_for_recognize_single'], 'html' => false)
-              );
+            if (!isset($data['Dublin Core']['Title'])) {
+                $data['Dublin Core']['Title'] = array(
+                    array('text' => $params['data_for_recognize_single'], 'html' => false)
+                );
             }
 
             $hasNewItem = insert_item(
                 array('public' => true),
                 $data,
                 array(
-              'file_transfer_type' => 'Filesystem',
-              'file_ingest_options' => array('ignore_invalid_files' => true),
-              'files' => array(
-                'Filesystem' => $full_file_path,
-                'source' => $full_file_path,
-              ),
-            ) //$fileMetadata
-          );
+                    'file_transfer_type' => 'Filesystem',
+                    'file_ingest_options' => array('ignore_invalid_files' => true),
+                    'files' => array(
+                        'Filesystem' => $full_file_path,
+                        'source' => $full_file_path,
+                    ),
+                ) //$fileMetadata
+            );
 
             if ($hasNewItem && $delete_file_action === 'yes') {
                 unlink($full_file_path);
@@ -536,9 +536,9 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                 $this->_flatArray($value, $ignoredKeys, $keys . '.' . $key);
             } elseif (!in_array($key, $ignoredKeys)) {
                 $this->flatArray[] = array(
-                  'key' => trim($keys . '.' . $key, '.'),
-                  'value' => $value,
-              );
+                    'key' => trim($keys . '.' . $key, '.'),
+                    'value' => $value,
+                );
             }
         }
     }
@@ -637,9 +637,9 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
                         // Reorder as mapping = element.
                         if (strpos($value[0], '/') === false
-                          && strpos($value[0], '.') === false
-                          && strpos($value[0], ':') !== false
-                      ) {
+                            && strpos($value[0], '.') === false
+                            && strpos($value[0], ':') !== false
+                        ) {
                             $elementFullName = $value[0];
                             $map = $value[1];
                         } else {
@@ -717,8 +717,8 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
             if (!is_array($input_fields)) {
                 $simpleExtract
-                  ? $this->simpleExtract($result, $input_fields, $target, $query)
-                  : $this->appendValueToTarget($result, $input_fields, $target, $query);
+                    ? $this->simpleExtract($result, $input_fields, $target, $query)
+                    : $this->appendValueToTarget($result, $input_fields, $target, $query);
             }
         }
         return $result->exchangeArray(array());
@@ -775,8 +775,8 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
             // The answer has many nodes.
             foreach ($nodeList as $node) {
                 $simpleExtract
-                  ? $this->simpleExtract($result, $node->nodeValue, $target, $query)
-                  : $this->appendValueToTarget($result, $node->nodeValue, $target);
+                    ? $this->simpleExtract($result, $node->nodeValue, $target, $query)
+                    : $this->appendValueToTarget($result, $node->nodeValue, $target);
             }
         }
 
@@ -797,10 +797,10 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
     protected function simpleExtract(ArrayObject $result, $value, $target, $source)
     {
         $result[] = array(
-          'field' => $source,
-          'target' => $target,
-          'value' => $value,
-      );
+            'field' => $source,
+            'target' => $target,
+            'value' => $value,
+        );
     }
 
     protected function appendValueToTarget(ArrayObject $result, $value, $target, $source)
@@ -841,110 +841,110 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         // The pattern checks a term or keyword, then an optional @language, then
         // an optional ^^ data type.
         $pattern = '~'
-          // Check a term/keyword.
-          . '^([a-zA-Z][^@^]*)'
-          // Check a language + country.
-          . '\s*(?:@\s*([a-zA-Z]+-[a-zA-Z]+|[a-zA-Z]+|))?'
-          // Check a data type.
-          . '\s*(?:\^\^\s*([a-zA-Z][a-zA-Z0-9]*:[a-zA-Z][\w-]*|[a-zA-Z][\w-]*|))?$'
-          . '~';
-        $matches = array();
+            // Check a term/keyword.
+            . '^([a-zA-Z][^@^]*)'
+            // Check a language + country.
+            . '\s*(?:@\s*([a-zA-Z]+-[a-zA-Z]+|[a-zA-Z]+|))?'
+            // Check a data type.
+            . '\s*(?:\^\^\s*([a-zA-Z][a-zA-Z0-9]*:[a-zA-Z][\w-]*|[a-zA-Z][\w-]*|))?$'
+            . '~';
+            $matches = array();
 
-        if (isset($targets[$target])) {
-            if (empty($targets[$target])) {
-                return;
+            if (isset($targets[$target])) {
+                if (empty($targets[$target])) {
+                    return;
+                }
+            } else {
+                $meta = preg_match($pattern, $target, $matches);
+                if (!$meta) {
+                    $targets[$target] = false;
+                    return;
+                }
+                $targets[$target] = array();
+                $targets[$target]['field'] = trim($matches[1]);
+                $targets[$target]['@language'] = empty($matches[2]) ? null : trim($matches[2]);
+                $targets[$target]['type'] = empty($matches[3]) ? null : trim($matches[3]);
+
+                $targets[$target]['is'] = $this->isField($targets[$target]['field']);
+
+                if ($targets[$target]['is'] === 'property') {
+                    $targets[$target]['property_id'] = get_db()->getTable('Element')->findBy(array('name' => $targets[$target]['field']), 1)->id;
+                }
             }
-        } else {
-            $meta = preg_match($pattern, $target, $matches);
-            if (!$meta) {
-                $targets[$target] = false;
-                return;
+
+            // Second, fill the result with the value.
+            switch ($targets[$target]['is']) {
+                case 'property':
+                    $v = array();
+                    $v['property_id'] = $targets[$target]['property_id'];
+                    $v['type'] = $targets[$target]['type'] ?: 'literal';
+                    switch ($v['type']) {
+                        case 'literal':
+                            // case strpos($resourceValue['type'], 'customvocab:') === 0:
+                        default:
+                            $v['@value'] = $value;
+                            $v['@language'] = $targets[$target]['@language'];
+                            break;
+                        case 'uri':
+                        case strpos($targets[$target]['type'], 'valuesuggest:') === 0:
+                            $v['o:label'] = null;
+                            $v['@language'] = $targets[$target]['@language'];
+                            $v['@id'] = $value;
+                            break;
+                        case 'resource':
+                        case 'resource:item':
+                        case 'resource:media':
+                        case 'resource:itemset':
+                            $id = $this->findResourceFromIdentifier($value, null, $targets[$target]['type']);
+                            if ($id) {
+                                $v['value_resource_id'] = $id;
+                                $v['@language'] = null;
+                            } else {
+                                $v['has_error'] = true;
+
+                                // $this->logger->err(
+                                //     'Index #{index}: Resource id for value "{value}" cannot be found: the entry is skipped.', // @translate
+                                //     ['index' => $this->indexResource, 'value' => $value]
+                                // );
+                            }
+                            break;
+                    }
+                    if (empty($v['has_error'])) {
+                        $result[$targets[$target]['field']][] = $v;
+                    }
+                    break;
+                    // Item is used only for media, that has only one item.
+                case $targets[$target]['field'] === 'o:item':
+                case 'id':
+                    $result[$targets[$target]['field']] = array('o:id' => $value);
+                    break;
+                case 'resource':
+                    $result[$targets[$target]['field']][] = array('o:id' => $value);
+                    break;
+                case 'boolean':
+                    $result[$targets[$target]['field']] = in_array($value, array('false', false, 0, '0', 'off', 'close'), true)
+                        ? false
+                        : (bool) $value;
+                    break;
+                case 'single':
+                    // TODO Check email and owner.
+                    $v = array();
+                    $v['value'] = $value;
+                    $result[$targets[$target]['field']] = $v;
+                    break;
+                case 'custom':
+                default:
+                    $v = array();
+                    $v['value'] = $value;
+                    if (isset($targets[$target]['@language'])) {
+                        $v['@language'] = $targets[$target]['@language'];
+                    }
+                    $v['type'] = empty($targets[$target]['type'])
+                        ? 'literal'
+                        : $targets[$target]['type'];
+                    $result[$targets[$target]['field']][] = $v;
+                    break;
             }
-            $targets[$target] = array();
-            $targets[$target]['field'] = trim($matches[1]);
-            $targets[$target]['@language'] = empty($matches[2]) ? null : trim($matches[2]);
-            $targets[$target]['type'] = empty($matches[3]) ? null : trim($matches[3]);
-
-            $targets[$target]['is'] = $this->isField($targets[$target]['field']);
-
-            if ($targets[$target]['is'] === 'property') {
-                $targets[$target]['property_id'] = get_db()->getTable('Element')->findBy(array('name' => $targets[$target]['field']), 1)->id;
-            }
-        }
-
-        // Second, fill the result with the value.
-        switch ($targets[$target]['is']) {
-          case 'property':
-              $v = array();
-              $v['property_id'] = $targets[$target]['property_id'];
-              $v['type'] = $targets[$target]['type'] ?: 'literal';
-              switch ($v['type']) {
-                  case 'literal':
-                  // case strpos($resourceValue['type'], 'customvocab:') === 0:
-                  default:
-                      $v['@value'] = $value;
-                      $v['@language'] = $targets[$target]['@language'];
-                      break;
-                  case 'uri':
-                  case strpos($targets[$target]['type'], 'valuesuggest:') === 0:
-                      $v['o:label'] = null;
-                      $v['@language'] = $targets[$target]['@language'];
-                      $v['@id'] = $value;
-                      break;
-                  case 'resource':
-                  case 'resource:item':
-                  case 'resource:media':
-                  case 'resource:itemset':
-                      $id = $this->findResourceFromIdentifier($value, null, $targets[$target]['type']);
-                      if ($id) {
-                          $v['value_resource_id'] = $id;
-                          $v['@language'] = null;
-                      } else {
-                          $v['has_error'] = true;
-
-                          // $this->logger->err(
-                          //     'Index #{index}: Resource id for value "{value}" cannot be found: the entry is skipped.', // @translate
-                          //     ['index' => $this->indexResource, 'value' => $value]
-                          // );
-                      }
-                      break;
-              }
-              if (empty($v['has_error'])) {
-                  $result[$targets[$target]['field']][] = $v;
-              }
-              break;
-          // Item is used only for media, that has only one item.
-          case $targets[$target]['field'] === 'o:item':
-          case 'id':
-              $result[$targets[$target]['field']] = array('o:id' => $value);
-              break;
-          case 'resource':
-              $result[$targets[$target]['field']][] = array('o:id' => $value);
-              break;
-          case 'boolean':
-              $result[$targets[$target]['field']] = in_array($value, array('false', false, 0, '0', 'off', 'close'), true)
-                  ? false
-                  : (bool) $value;
-              break;
-          case 'single':
-              // TODO Check email and owner.
-              $v = array();
-              $v['value'] = $value;
-              $result[$targets[$target]['field']] = $v;
-              break;
-          case 'custom':
-          default:
-              $v = array();
-              $v['value'] = $value;
-              if (isset($targets[$target]['@language'])) {
-                  $v['@language'] = $targets[$target]['@language'];
-              }
-              $v['type'] = empty($targets[$target]['type'])
-                  ? 'literal'
-                  : $targets[$target]['type'];
-              $result[$targets[$target]['field']][] = $v;
-              break;
-      }
     }
 
     /**
@@ -958,37 +958,37 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         return "resource";
 
         $resources = array(
-          'o:item',
-          'o:item_set',
-          'o:media',
-      );
+            'o:item',
+            'o:item_set',
+            'o:media',
+        );
         if (in_array($field, $resources)) {
             return 'resource';
         }
         $ids = array(
-          'o:resource_template',
-          'o:resource_class',
-          'o:owner',
-      );
+            'o:resource_template',
+            'o:resource_class',
+            'o:owner',
+        );
         if (in_array($field, $ids)) {
             return 'id';
         }
         $booleans = array(
-          'o:is_open',
-          'o:is_public',
-      );
+            'o:is_open',
+            'o:is_public',
+        );
         if (in_array($field, $booleans)) {
             return 'boolean';
         }
         $singleData = array(
-          'o:email',
-      );
+            'o:email',
+        );
         if (in_array($field, $singleData)) {
             return 'single';
         }
         return $this->bulk->isPropertyTerm($field)
-          ? 'property'
-          : 'custom';
+            ? 'property'
+            : 'custom';
     }
 
     /**
