@@ -100,84 +100,6 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         $this->view->value = "import";
     }
 
-    public function getFilesAction()
-    {
-        $this->prepareFilesMaps();
-        // $request = $this->getRequest();
-        $files = $_FILES;
-        $files_data_for_view = array();
-
-        foreach ($files['files']['name'] as $key => $file_name) {
-            $file = array();
-
-            $file['type'] = $files['files']['type'][$key];
-            $file['name'] = $files['files']['name'][$key];
-            $file['tmp_name'] = $files['files']['tmp_name'][$key];
-            $file['error'] = $files['files']['error'][$key];
-            $file['size'] = $files['files']['size'][$key];
-
-            $media_type = $file['type'];
-            $data = array();
-            $this->parsed_data = array();
-            $errors = '';
-
-            if (isset($this->filesMapsArray[$media_type])) {
-                $filesMapsArray = $this->filesMapsArray[$media_type];
-                $file['item_id'] = $filesMapsArray['item_id'];
-                unset($filesMapsArray['media_type']);
-                unset($filesMapsArray['item_id']);
-
-                switch ($media_type) {
-                    case 'application/pdf':
-                        $data = $this->extractDataFromPdf($file['tmp_name']);
-                        $this->parsed_data = $this->flatArray($data);
-                        $data = $this->mapData()->array($data, $filesMapsArray, true);
-                        break;
-
-                    default:
-                        $getId3 = new GetId3();
-                        // TODO Fix GetId3 that uses create_function(), deprecated.
-                        $file_source = @$getId3
-                            // ->setOptionMD5Data(true)
-                            // ->setOptionMD5DataSource(true)
-                            // ->setEncoding('UTF-8')
-                            ->analyze($file['tmp_name']);
-                        $this->parsed_data = $this->flatArray($file_source, $this->ignoredKeys);
-                        $data = $this->mapData()->array($file_source, $filesMapsArray, true);
-                        break;
-                }
-            }
-
-            $files_data_for_view[] = array(
-                'file' => $file,
-                'source_data' => $this->parsed_data,
-                'recognized_data' => $data,
-                'errors' => $errors,
-            );
-        }
-
-        $this->view->files_data_for_view = $files_data_for_view;
-
-        $db = get_db();
-        $elementTable = $db->getTable('Element');
-        $elementSetTable = $db->getTable('ElementSet');
-
-        $select_list = $elementTable->findPairsForSelectForm(array('record_types' => array('All', 'Item')));
-
-        $listTerms = array();
-        foreach ($select_list as $elementSetName => $elements) {
-            foreach ($elements as $elementId => $elementName) {
-                // Keep the untranslated name.
-                $element = $elementTable->find($elementId);
-                $elementSet = $elementSetTable->find($element->element_set_id);
-                $listTerms[$elementSet->name . ':' . $element->name] = $elementSetName . ' : ' . __($elementName);
-            }
-        }
-
-        $this->view->listTerms = $listTerms;
-        $this->view->filesMaps = $this->filesMaps;
-    }
-
     public function saveOptionsAction()
     {
         $params = [];
@@ -316,6 +238,84 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
         $request = json_encode($request);
         $this->view->request = $request;
+    }
+
+    public function getFilesAction()
+    {
+        $this->prepareFilesMaps();
+        // $request = $this->getRequest();
+        $files = $_FILES;
+        $files_data_for_view = array();
+
+        foreach ($files['files']['name'] as $key => $file_name) {
+            $file = array();
+
+            $file['type'] = $files['files']['type'][$key];
+            $file['name'] = $files['files']['name'][$key];
+            $file['tmp_name'] = $files['files']['tmp_name'][$key];
+            $file['error'] = $files['files']['error'][$key];
+            $file['size'] = $files['files']['size'][$key];
+
+            $media_type = $file['type'];
+            $data = array();
+            $this->parsed_data = array();
+            $errors = '';
+
+            if (isset($this->filesMapsArray[$media_type])) {
+                $filesMapsArray = $this->filesMapsArray[$media_type];
+                $file['item_id'] = $filesMapsArray['item_id'];
+                unset($filesMapsArray['media_type']);
+                unset($filesMapsArray['item_id']);
+
+                switch ($media_type) {
+                    case 'application/pdf':
+                        $data = $this->extractDataFromPdf($file['tmp_name']);
+                        $this->parsed_data = $this->flatArray($data);
+                        $data = $this->mapData()->array($data, $filesMapsArray, true);
+                        break;
+
+                    default:
+                        $getId3 = new GetId3();
+                        // TODO Fix GetId3 that uses create_function(), deprecated.
+                        $file_source = @$getId3
+                        // ->setOptionMD5Data(true)
+                        // ->setOptionMD5DataSource(true)
+                        // ->setEncoding('UTF-8')
+                        ->analyze($file['tmp_name']);
+                        $this->parsed_data = $this->flatArray($file_source, $this->ignoredKeys);
+                        $data = $this->mapData()->array($file_source, $filesMapsArray, true);
+                        break;
+                }
+            }
+
+            $files_data_for_view[] = array(
+                'file' => $file,
+                'source_data' => $this->parsed_data,
+                'recognized_data' => $data,
+                'errors' => $errors,
+            );
+        }
+
+        $this->view->files_data_for_view = $files_data_for_view;
+
+        $db = get_db();
+        $elementTable = $db->getTable('Element');
+        $elementSetTable = $db->getTable('ElementSet');
+
+        $select_list = $elementTable->findPairsForSelectForm(array('record_types' => array('All', 'Item')));
+
+        $listTerms = array();
+        foreach ($select_list as $elementSetName => $elements) {
+            foreach ($elements as $elementId => $elementName) {
+                // Keep the untranslated name.
+                $element = $elementTable->find($elementId);
+                $elementSet = $elementSetTable->find($element->element_set_id);
+                $listTerms[$elementSet->name . ':' . $element->name] = $elementSetName . ' : ' . __($elementName);
+            }
+        }
+
+        $this->view->listTerms = $listTerms;
+        $this->view->filesMaps = $this->filesMaps;
     }
 
     public function checkFolderAction()
