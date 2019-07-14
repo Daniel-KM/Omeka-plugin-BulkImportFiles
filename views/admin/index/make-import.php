@@ -42,7 +42,7 @@ echo common('bulkimportfiles-nav');
                     <?= $this->formLabel('delete_file', __('Delete original file from the folder?')) ?>
                 </div>
                 <div class='inputs five columns omega'>
-                    <?= $this->formCheckbox('delete_file', true, array('checked' => false, 'id' => 'delete-file')) ?>
+                    <?= $this->formCheckbox('delete_file', true, array('checked' => false, 'id' => 'delete_file')) ?>
                     <p class="explanation">
                         <?= __('Do you want to delete a file from the source directory after it has been imported? If so, the directory must be server-writable.') ?>
                     </p>

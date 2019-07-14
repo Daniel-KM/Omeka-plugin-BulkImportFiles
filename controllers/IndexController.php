@@ -390,7 +390,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         $params['data_for_recognize_row_id'] = $this->getParam('data_for_recognize_row_id');
         $params['data_for_recognize_single'] = $this->getParam('data_for_recognize_single');
         $params['directory'] = $this->getParam('directory');
-        $params['delete-file'] = $this->getParam('delete-file');
+        $params['delete_file'] = $this->getParam('delete_file') === 'true';
 
         $data_for_recognize_row_id = $params['data_for_recognize_row_id'];
         $notice = null;
@@ -399,7 +399,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
         if (isset($params['data_for_recognize_single'])) {
             $full_file_path = $params['directory'] . '/' . $params['data_for_recognize_single'];
-            $delete_file_action = $params['delete-file'];
+            $delete_file_action = $params['delete_file'];
 
             // TODO Use api standard method, not direct creation.
             // Create new media via temporary factory.
@@ -417,11 +417,11 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
             $media_type = isset($file_source['mime_type']) ? $file_source['mime_type'] : 'undefined';
 
             if ($media_type == 'undefined') {
-                $file_extension = substr($full_file_path, -4);
+                $file_extension = pathinfo($full_file_path, PATHINFO_EXTENSION);
                 $file_extension = strtolower($file_extension);
 
-                if ($file_extension == ".pdf") {
-                    $media_type = "application/pdf";
+                if ($file_extension == 'pdf') {
+                    $media_type = 'application/pdf';
                 }
             }
 
@@ -468,21 +468,34 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                 );
             }
 
-            $hasNewItem = insert_item(
+            // Save the file if not to be deleted.
+            if ($delete_file_action) {
+                $tmpPath = $full_file_path;
+            } else {
+                $tmpPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . basename($full_file_path);
+                copy($full_file_path, $tmpPath);
+            }
+
+            $hasNewItem = @insert_item(
                 array('public' => true),
                 $data,
+                // $fileMetadata
                 array(
-                    'file_transfer_type' => 'Filesystem',
-                    'file_ingest_options' => array('ignore_invalid_files' => true),
-                    'files' => array(
-                        'Filesystem' => $full_file_path,
-                        'source' => $full_file_path,
+                    Builder_Item::FILE_TRANSFER_TYPE => 'Filesystem',
+                    Builder_Item::FILE_INGEST_OPTIONS => array(
+                        'ignore_invalid_files' => true,
+                        'ignoreNoFile' => true,
                     ),
-                ) //$fileMetadata
+                    Builder_Item::FILES => array(
+                        array(
+                            'source' => $tmpPath,
+                        ),
+                    ),
+                )
             );
 
             if ($hasNewItem && $delete_file_action) {
-                unlink($full_file_path);
+                @unlink($tmpPath);
             }
         }
 

@@ -468,16 +468,16 @@ jQuery(document).ready(function () {
             jQuery('.response').append('<p>Note that the possible Omeka errors during import are reported in the logs.</p>');
             jQuery('.response').find('.total_info').remove();
         } else {
+
             if (make_action == true) {
                 var rowId = data_for_recognize['row_id'][file_position_upload];
                 var row = jQuery('.response .isset_yes.row_id_' + rowId);
                 data_for_recognize_single = {
                     'data_for_recognize_single' : data_for_recognize['filenames'][file_position_upload],
                     'directory': directory,
-                    'delete-file': jQuery('#delete-file').is(':checked'),
+                    'delete_file': jQuery('#delete_file').is(':checked'),
                     'data_for_recognize_row_id' : rowId,
                 };
-
                 jQuery.ajax({
                     url: url,
                     data: data_for_recognize_single,
