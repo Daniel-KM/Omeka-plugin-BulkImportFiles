@@ -509,7 +509,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         if (empty($mediaType)) {
             $request['msg'] = __('Request empty.'); // @translate
         } else {
-            $filename = 'map_' . explode('/', $mediaType)[0] . '_' . explode('/', $mediaType)[1] . '.csv';
+            $filename = 'map_' . explode('/', $mediaType)[0] . '_' . explode('/', $mediaType)[1] . '.ini';
             $filepath = dirname(dirname(__FILE__)) . '/data/mapping/' . $filename;
             if (($handle = fopen($filepath, 'w')) === false) {
                 $request['msg'] = __(sprintf('Could not save file "%s" for writing.', $filepath));
@@ -540,7 +540,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         if (empty($mediaType)) {
             $request['msg'] = __('Request empty.');
         } else {
-            $filename = 'map_' . explode('/', $mediaType)[0] . '_' . explode('/', $mediaType)[1] . '.csv';
+            $filename = 'map_' . explode('/', $mediaType)[0] . '_' . explode('/', $mediaType)[1] . '.ini';
             $filepath = dirname(dirname(__FILE__)) . '/data/mapping/' . $filename;
             if (!strlen($filepath)) {
                 $request['msg'] = __('Filepath string should be longer that zero character.');
