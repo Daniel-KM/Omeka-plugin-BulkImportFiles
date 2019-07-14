@@ -56,20 +56,6 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         'md5_data',
     );
 
-    protected $getId3IgnoredKeys = array(
-        'GETID3_VERSION',
-        'filesize',
-        'filename',
-        'filepath',
-        'filenamepath',
-        'avdataoffset',
-        'avdataend',
-        'fileformat',
-        'encoding',
-        'mime_type',
-        'md5_data',
-    );
-
     protected $bulk;
 
     public function indexAction()
@@ -89,6 +75,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         }
 
         $this->prepareFilesMaps();
+
         // $request = $this->getRequest();
         $files = $_FILES;
         $files_data_for_view = array();
@@ -128,16 +115,38 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                         $getId3 = new GetId3();
                         // TODO Fix GetId3 that uses create_function(), deprecated.
                         $file_source = @$getId3
-                        // ->setOptionMD5Data(true)
-                        // ->setOptionMD5DataSource(true)
-                        // ->setEncoding('UTF-8')
-                        ->analyze($file['tmp_name']);
+                            // ->setOptionMD5Data(true)
+                            // ->setOptionMD5DataSource(true)
+                            // ->setEncoding('UTF-8')
+                            ->analyze($file['tmp_name']);
                         $this->parsed_data = $this->flatArray($file_source, $this->ignoredKeys);
                         $data = $this->mapData()->array($file_source, $filesMapsArray, true);
                         break;
                 }
             }
 
+            /*
+             * selected files for uploads
+             * $file array
+             *      'name' => string
+             *      'type' => string
+             *      'tmp_name' => string
+             *      'error' => int
+             *      'size' => int
+             *
+             * $source_data = $this->parsed_data
+             * all available meta data for current file with value
+             * example:
+             *      'key' => string '/video/dataformat'
+             *      'value' => string 'jpg'
+             *
+             * config saved by user for current file type
+             * $recognized_data
+             * example:
+             * 'Dublin Core:Date' => array
+             *        'field' => string 'jpg/exif/IFD0/DateTime'
+             *        'value' => string '2014:03:12 15:03:25'
+             */
             $files_data_for_view[] = array(
                 'file' => $file,
                 'source_data' => $this->parsed_data,
@@ -146,16 +155,12 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
             );
         }
 
-        $this->view->files_data_for_view = $files_data_for_view;
-
         $db = get_db();
         $elementTable = $db->getTable('Element');
         $elementSetTable = $db->getTable('ElementSet');
-
         $select_list = $elementTable->findPairsForSelectForm(array('record_types' => array('All', 'Item')));
-
         $listTerms = array();
-        foreach ($select_list as $elementSetName => $elements) {
+        foreach ($select_list as $elements) {
             foreach ($elements as $elementId => $elementName) {
                 // Keep the untranslated name.
                 $element = $elementTable->find($elementId);
@@ -164,6 +169,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
             }
         }
 
+        $this->view->files_data_for_view = $files_data_for_view;
         $this->view->listTerms = $listTerms;
         $this->view->filesMaps = $this->filesMaps;
     }
@@ -174,10 +180,10 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
             return;
         }
 
+        $this->prepareFilesMaps();
+
         // $request = $this->getRequest();
         $files = $_FILES;
-
-        $this->prepareFilesMaps();
 
         $files_data = array();
         $total_files = 0;
@@ -187,7 +193,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         // Save the files temporary for the next request.
         $dest = sys_get_temp_dir() . '/bulkimportfiles_upload/';
         if (!file_exists($dest)) {
-            mkdir($dest, 0777, true);
+            mkdir($dest, 0775, true);
         }
 
         if (!empty($files['files']['name'])) {
@@ -199,7 +205,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
                 // Check name for security.
                 if (basename($file_name) !== $file_name) {
-                    $error = __('All files must have a regular name. Check ended.'); // @translate;
+                    $error = __('All files must have a regular name. Check ended.');
                     break;
                 }
 
@@ -250,16 +256,16 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                         'file_size' => $files['files']['size'][$key],
                         'file_type' => $files['files']['type'][$key],
                         'file_isset_maps' => $file_isset_maps,
-                        'has_error' => $files['files']['error'][$key] || true,
+                        'has_error' => $files['files']['error'][$key],
                     );
                 }
             }
 
             if (!$error && count($files_data) == 0) {
-                $error = __('Folder is empty'); // @translate;
+                $error = __('Folder is empty');
             }
         } else {
-            $error = __('Can’t check empty folder'); // @translate;
+            $error = __('Can’t check empty folder');
         }
 
         $this->view->files_data = $files_data;
@@ -327,13 +333,13 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                 }
 
                 if (count($files_data) == 0) {
-                    $error = __('Folder is empty'); // @translate;
+                    $error = __('Folder is empty');;
                 }
             } else {
-                $error = __('Folder not exist'); // @translate;
+                $error = __('Folder not exist');;
             }
         } else {
-            $error = __('Can’t check empty folder'); // @translate;
+            $error = __('Can’t check empty folder');;
         }
 
         $this->view->files_data = $files_data;
@@ -353,15 +359,15 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
         // $baseUri = FILES_DIR;
 
-        $isServer = $this->getParam('is_server') === 'true';
-
         $params = array();
         $params['row_id'] = $this->getParam('row_id');
         $params['filename'] = $this->getParam('filename');
         $params['source'] = $this->getParam('source');
         $params['directory'] = $this->getParam('directory');
         $params['import_unmapped'] = $this->getParam('import_unmapped') === 'true';
-        $params['delete_file'] = $this->getParam('delete_file') === 'true';
+
+        $isServer = $this->getParam('is_server') === 'true';
+        $params['delete_file'] = !$isServer || $this->getParam('delete_file') === 'true';
 
         $row_id = $params['row_id'];
         $notice = null;
@@ -380,8 +386,6 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
             // TODO Use api standard method, not direct creation.
             // Create new media via temporary factory.
 
-            // $fileinfo = new \SplFileInfo($full_file_path);
-
             $getId3 = new GetId3();
             // TODO Fix GetId3 that uses create_function(), deprecated.
             $file_source = @$getId3
@@ -391,11 +395,11 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                 ->analyze($full_file_path);
 
             $media_type = isset($file_source['mime_type']) ? $file_source['mime_type'] : 'undefined';
-
             if ($media_type == 'undefined') {
                 $file_extension = pathinfo($full_file_path, PATHINFO_EXTENSION);
                 $file_extension = strtolower($file_extension);
 
+                // TODO Why pdf is an exception ?
                 if ($file_extension == 'pdf') {
                     $media_type = 'application/pdf';
                 }
@@ -410,10 +414,9 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                 }
 
                 $data = [];
-                $notice = __('No mapping for this file.'); // @translate
+                $notice = __('No mapping for this file.');
             } else {
                 $filesMapsArray = $this->filesMapsArray[$media_type];
-
                 unset($filesMapsArray['media_type']);
                 unset($filesMapsArray['item_id']);
 
@@ -437,18 +440,21 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
                 if (count($data) <= 0) {
                     if ($query) {
-                        $warning = __('No metadata to import. You may see log for more info.'); // @translate
+                        $warning = __('No metadata to import. You may see log for more info.');
                     } else {
-                        $notice = __('No metadata: mapping is empty.'); // @translate
+                        $notice = __('No metadata: mapping is empty.');
                     }
                 }
             }
 
-            if (!isset($data['Dublin Core']['Title'])) {
-                $data['Dublin Core']['Title'] = array(
-                    array('text' => $isServer ? $params['filename'] : $params['source'], 'html' => false)
+            if (empty($data['Dublin Core']['Title'])) {
+                $data['Dublin Core']['Title'][] = array(
+                    'text' => $isServer ? $params['filename'] : $params['source'],
+                    'html' => false,
                 );
             }
+
+            // Create the item with the data and the file.
 
             // Save the file if not to be deleted.
             if ($delete_file_action) {
@@ -458,7 +464,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                 copy($full_file_path, $tmpPath);
             }
 
-            $hasNewItem = @insert_item(
+            $newItem = @insert_item(
                 array(
                     'public' => true,
                 ),
@@ -479,15 +485,15 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                 )
             );
 
-            if ($hasNewItem && $delete_file_action) {
+            if ($newItem && $delete_file_action) {
                 @unlink($tmpPath);
             }
         }
 
         $this->view->row_id = $row_id;
-        $this->view->notice = empty($notice) ? null : $notice;
-        $this->view->warning = empty($warning) ? null : $warning;
-        $this->view->error = empty($error) ? null : $error;
+        $this->view->notice = $notice;
+        $this->view->warning = $warning;
+        $this->view->error = $error;
     }
 
     public function mapShowAction()
@@ -520,7 +526,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
         $mediaType = $this->getParam('media_type');
         if (empty($mediaType)) {
-            $request['msg'] = __('Request empty.'); // @translate
+            $request['msg'] = __('Request empty.');
         } else {
             $filename = 'map_' . explode('/', $mediaType)[0] . '_' . explode('/', $mediaType)[1] . '.ini';
             $filepath = dirname(dirname(__FILE__)) . '/data/mapping/' . $filename;
@@ -594,12 +600,11 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
             $media_type = $params['media_type'];
             $listterms_select = $params['listterms_select'];
 
-            /** @var \Omeka\Api\Representation\ItemRepresentation $item */
             $file_content = "$media_type = media_type\n";
+
             $db = get_db();
             $elementTable = $db->getTable('Element');
             // $elementSetTable = $db->getTable('ElementSet');
-
             foreach ($listterms_select as $term_item_name) {
                 foreach ($term_item_name['property'] as $term) {
                     list($elementSetName, $elementName) = array_map('trim', explode(':', $term));
@@ -623,25 +628,25 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                         }
 
                         if (!is_writeable($file_path . $file)) {
-                            $error = __('Filepath "%s" is not writeable.', $file_path . $file); // @translate
+                            $error = __('Filepath "%s" is not writeable.', $file_path . $file);
                         }
 
                         $response = file_put_contents($file_path . $file, $file_content);
                     }
                 } else {
-                    $error = __('Folder not exist'); // @translate;
+                    $error = __('Folder not exist');;
                 }
             } else {
-                $error = __('Can’t check empty folder'); // @translate;
+                $error = __('Can’t check empty folder');;
             }
 
             if ($response) {
-                $request = __('Mapping of elements successfully updated.'); // @translate
+                $request = __('Mapping of elements successfully updated.');
             } else {
-                $request = __('Can’t update mapping.'); // @translate
+                $request = __('Can’t update mapping.');
             }
         } else {
-            $request = __('Request empty.'); // @translate
+            $request = __('Request empty.');
         }
 
         $result = $error
@@ -701,6 +706,13 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         }
     }
 
+    /**
+     * List files in a directory, not recursively, and without subdirs, and sort
+     * them alphabetically (case insenitive and natural order).
+     *
+     * @param string $dir
+     * @return array
+     */
     protected function listFilesInDir($dir)
     {
         if (empty($dir) || !file_exists($dir) || !is_dir($dir) || !is_readable($dir)) {
@@ -711,50 +723,6 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         }));
         natcasesort($result);
         return $result;
-    }
-
-    protected function extractStringFromFile($filepath, $startString, $endString, $chunkSize = 131072)
-    {
-        if (!strlen($filepath) || !strlen($startString) || !strlen($endString)) {
-            throw new RuntimeException('Filepath, start string and end string should be longer that zero character.');
-        }
-
-        $chunkSize = (int) $chunkSize;
-        if ($chunkSize <= strlen($startString) || $chunkSize <= strlen($endString)) {
-            throw new RuntimeException('Chunk size should be longer than start and end strings.');
-        }
-
-        if (($handle = fopen($filepath, 'r')) === false) {
-            throw new RuntimeException(sprintf('Could not open file "%s" for reading/'), $filepath);
-        }
-
-        $buffer = '';
-        $hasString = false;
-
-        while (($chunk = fread($handle, $chunkSize)) !== false) {
-            if ($chunk === '') {
-                break;
-            }
-
-            $buffer .= $chunk;
-            $startPosition = strpos($buffer, $startString);
-            $endPosition = strpos($buffer, $endString);
-
-            if ($startPosition !== false && $endPosition !== false) {
-                $buffer = substr($buffer, $startPosition, $endPosition - $startPosition + 12);
-                $hasString = true;
-                break;
-            } elseif ($startPosition !== false) {
-                $buffer = substr($buffer, $startPosition);
-                $hasString = true;
-            } elseif (strlen($buffer) > (strlen($startString) * 2)) {
-                $buffer = substr($buffer, strlen($startString));
-            }
-        }
-
-        fclose($handle);
-
-        return $hasString ? $buffer : null;
     }
 
     protected function prepareFilesMaps()
@@ -826,10 +794,10 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                     $this->filesMaps[$file] = $current_maps;
                 }
             } else {
-                $error = 'Folder not exist'; // @translate;
+                $error = __('Folder not exist');;
             }
         } else {
-            $error = 'Can’t check empty folder'; // @translate;
+            $error = __('Can’t check empty folder');;
         }
     }
 
@@ -1061,7 +1029,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                                 $v['has_error'] = true;
 
                                 // $this->logger->err(
-                                //     'Index #{index}: Resource id for value "{value}" cannot be found: the entry is skipped.', // @translate
+                                //     'Index #{index}: Resource id for value "{value}" cannot be found: the entry is skipped.',
                                 //     ['index' => $this->indexResource, 'value' => $value]
                                 // );
                             }
@@ -1309,7 +1277,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         $pdf = new Pdf($filepath, $options);
         $data = (string) $pdf->getData();
         if (empty($data)) {
-            $error = $pdf->getError() ?: sprintf('Command pdftk unavailable or failed: %s', $pdf->getCommand()); // @translate
+            $error = $pdf->getError() ?: sprintf('Command pdftk unavailable or failed: %s', $pdf->getCommand());
             _log(sprintf('Unable to process pdf: %s', $error));
 
             return array();
@@ -1330,5 +1298,49 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
             $result['NumberOfPages'] = $matches[1];
         }
         return $result;
+    }
+
+    protected function extractStringFromFile($filepath, $startString, $endString, $chunkSize = 131072)
+    {
+        if (!strlen($filepath) || !strlen($startString) || !strlen($endString)) {
+            throw new RuntimeException('Filepath, start string and end string should be longer that zero character.');
+        }
+
+        $chunkSize = (int) $chunkSize;
+        if ($chunkSize <= strlen($startString) || $chunkSize <= strlen($endString)) {
+            throw new RuntimeException('Chunk size should be longer than start and end strings.');
+        }
+
+        if (($handle = fopen($filepath, 'r')) === false) {
+            throw new RuntimeException(sprintf('Could not open file "%s" for reading/'), $filepath);
+        }
+
+        $buffer = '';
+        $hasString = false;
+
+        while (($chunk = fread($handle, $chunkSize)) !== false) {
+            if ($chunk === '') {
+                break;
+            }
+
+            $buffer .= $chunk;
+            $startPosition = strpos($buffer, $startString);
+            $endPosition = strpos($buffer, $endString);
+
+            if ($startPosition !== false && $endPosition !== false) {
+                $buffer = substr($buffer, $startPosition, $endPosition - $startPosition + 12);
+                $hasString = true;
+                break;
+            } elseif ($startPosition !== false) {
+                $buffer = substr($buffer, $startPosition);
+                $hasString = true;
+            } elseif (strlen($buffer) > (strlen($startString) * 2)) {
+                $buffer = substr($buffer, strlen($startString));
+            }
+        }
+
+        fclose($handle);
+
+        return $hasString ? $buffer : null;
     }
 }
