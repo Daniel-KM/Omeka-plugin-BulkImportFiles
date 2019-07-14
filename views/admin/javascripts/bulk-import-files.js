@@ -285,7 +285,7 @@ jQuery(document).ready(function () {
                 var selected_option_check = selected_option.replace(/\s+/g, '');
                 var selected_option_key = null;
                 jQuery('.listterms option').each(function(index, obj){
-                    if (jQuery(obj).html().replace(/\s+/g, '') == selected_option_check) {
+                    if (jQuery(obj).val().replace(/\s+/g, '') == selected_option_check) {
                         selected_option_key = jQuery(obj).attr('value');
                     }
                 });

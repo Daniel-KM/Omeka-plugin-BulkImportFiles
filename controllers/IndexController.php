@@ -156,7 +156,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                 // Keep the untranslated name.
                 $element = $elementTable->find($elementId);
                 $elementSet = $elementSetTable->find($element->element_set_id);
-                $listTerms[$elementSet->name . ':' . $element->name] = $elementSetName . ' : ' . __($elementName);
+                $listTerms[$elementSet->name][$elementSet->name . ':' . $element->name] = $elementName;
             }
         }
 

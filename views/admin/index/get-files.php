@@ -187,8 +187,12 @@
 <div class="listterms type_hidden">
     <div class="listterms_with_action">
         <select class="listterms_select">
-            <?php foreach ($listTerms as $key => $val): ?>
+            <?php foreach ($listTerms as $elementSetName => $vals): ?>
+            <optgroup label="<?= $elementSetName ?>">
+                <?php foreach ($vals as $key => $val): ?>
                 <option value="<?= $key ?>"><?= $val ?></option>
+                <?php endforeach; ?>
+            </optgroup>
             <?php endforeach; ?>
         </select>
         <div class="js-action-property-button">
