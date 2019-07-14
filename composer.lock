@@ -4,8 +4,65 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "de0384ae7e2d8ef4589f09dd73bc9c61",
+    "content-hash": "75bdd878d786d007a0be605188ec85fb",
     "packages": [
+        {
+            "name": "james-heinrich/getid3",
+            "version": "v2.0.0-beta1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/JamesHeinrich/getID3.git",
+                "reference": "031fee84c32986e8afaf47d76497bffcfa53f474"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/JamesHeinrich/getID3/zipball/031fee84c32986e8afaf47d76497bffcfa53f474",
+                "reference": "031fee84c32986e8afaf47d76497bffcfa53f474",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.4.0"
+            },
+            "suggest": {
+                "ext-exif": "EXIF extension is required for graphic modules.",
+                "ext-rar": "RAR extension is required for RAR archive module."
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "JamesHeinrich\\GetID3\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL"
+            ],
+            "authors": [
+                {
+                    "name": "Craig Duncan",
+                    "email": "git@duncanc.co.uk",
+                    "homepage": "https://github.com/duncan3dc",
+                    "role": "Developer"
+                },
+                {
+                    "name": "James Heinrich",
+                    "email": "info@getid3.org",
+                    "homepage": "https://github.com/JamesHeinrich",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Extract and write useful information to/from popular multimedia file formats",
+            "homepage": "http://www.getid3.org/",
+            "keywords": [
+                "audio",
+                "codecs",
+                "id3",
+                "metadata",
+                "tags",
+                "video"
+            ],
+            "time": "2019-05-22T16:33:10+00:00"
+        },
         {
             "name": "mikehaertl/php-pdftk",
             "version": "0.5.0",
@@ -125,77 +182,13 @@
                 "files"
             ],
             "time": "2017-08-28T11:21:51+00:00"
-        },
-        {
-            "name": "phansys/getid3",
-            "version": "2.1.x-dev",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/phansys/GetId3.git",
-                "reference": "25fb540dd9bf5cc3d1501f4bc3d4c759e13ead89"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/phansys/GetId3/zipball/25fb540dd9bf5cc3d1501f4bc3d4c759e13ead89",
-                "reference": "25fb540dd9bf5cc3d1501f4bc3d4c759e13ead89",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.3.3"
-            },
-            "conflict": {
-                "james-heinrich/getid3": "*"
-            },
-            "require-dev": {
-                "phpunit/phpunit": ">=4.8,<5.4.3"
-            },
-            "suggest": {
-                "ext-dba": "DBA extension is required in order to use DBA database as cache storage.",
-                "ext-exif": "EXIF extension is required for graphic modules.",
-                "ext-mysqli": "MySQLi extension is required in order to use MySQL database as cache storage.",
-                "ext-rar": "RAR extension is required for RAR archive module.",
-                "ext-sqlite": "SQLite extension is required in order to use SQLite database as cache storage."
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "2.1-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "GetId3\\": ""
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "GPL"
-            ],
-            "authors": [
-                {
-                    "name": "James Heinrich",
-                    "email": "info@getid3.org",
-                    "homepage": "http://www.getid3.org"
-                }
-            ],
-            "description": "This fork of GetId3 library updates to PSR-2 / PSR-4 CS, adds namespaces and makes it installable by composer.",
-            "homepage": "http://www.getid3.org",
-            "keywords": [
-                "getid3",
-                "metadata",
-                "tags"
-            ],
-            "abandoned": "james-heinrich/getid3",
-            "time": "2017-05-26T00:05:10+00:00"
         }
     ],
     "packages-dev": [],
     "aliases": [],
-    "minimum-stability": "stable",
-    "stability-flags": {
-        "phansys/getid3": 20
-    },
-    "prefer-stable": false,
+    "minimum-stability": "beta",
+    "stability-flags": [],
+    "prefer-stable": true,
     "prefer-lowest": false,
     "platform": [],
     "platform-dev": []

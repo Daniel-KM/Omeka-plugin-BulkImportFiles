@@ -1,6 +1,8 @@
 {
+    "minimum-stability": "beta",
+    "prefer-stable": true,
     "require": {
-        "phansys/getid3": " ^2.1@dev",
-        "mikehaertl/php-pdftk": "^0.5.0"
+        "mikehaertl/php-pdftk": "^0.5.0",
+        "james-heinrich/getid3": "^2.0"
     }
 }

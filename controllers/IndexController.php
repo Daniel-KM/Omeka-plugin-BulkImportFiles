@@ -6,10 +6,14 @@
  * Controller plugins helpers are currently integrated here.
  * @todo Clean backport of the module for controller plugin helpers.
  */
-use mikehaertl\pdftk\Pdf;
 
-// use GetId3\GetId3Core as GetId3;
-require_once dirname(dirname(__FILE__)) . '/../../application/libraries/getid3/getid3.php';
+// Use core Omeka GetId3 or more recent composer one.
+if (!class_exists(\JamesHeinrich\GetID3\GetId3::class)) {
+    require dirname(dirname(__FILE__)) . '/vendor/james-heinrich/getid3/src/GetID3.php';
+}
+
+use JamesHeinrich\GetID3\GetId3;
+use mikehaertl\pdftk\Pdf;
 
 class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionController
 {
@@ -113,11 +117,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
                     default:
                         $getId3 = new GetId3();
-                        // TODO Fix GetId3 that uses create_function(), deprecated.
-                        $file_source = @$getId3
-                            // ->setOptionMD5Data(true)
-                            // ->setOptionMD5DataSource(true)
-                            // ->setEncoding('UTF-8')
+                        $file_source = $getId3
                             ->analyze($file['tmp_name']);
                         $this->parsed_data = $this->flatArray($file_source, $this->ignoredKeys);
                         $data = $this->mapData()->array($file_source, $filesMapsArray, true);
@@ -211,11 +211,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
 
                 if ($files['files']['error'][$key] === UPLOAD_ERR_OK) {
                     $getId3 = new GetId3();
-                    // TODO Fix GetId3 that uses create_function(), deprecated.
-                    $file_source = @$getId3
-                        // ->setOptionMD5Data(true)
-                        // ->setOptionMD5DataSource(true)
-                        // ->setEncoding('UTF-8')
+                    $file_source = $getId3
                         ->analyze($files['files']['tmp_name'][$key]);
 
                     ++$total_files;
@@ -303,11 +299,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                 $file_path = $params['folder'] . '/';
                 foreach ($files as $file) {
                     $getId3 = new GetId3();
-                    // TODO Fix GetId3 that uses create_function(), deprecated.
-                    $file_source = @$getId3
-                        // ->setOptionMD5Data(true)
-                        // ->setOptionMD5DataSource(true)
-                        // ->setEncoding('UTF-8')
+                    $file_source = $getId3
                         ->analyze($file_path . $file);
 
                     ++$total_files;
@@ -387,11 +379,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
             // Create new media via temporary factory.
 
             $getId3 = new GetId3();
-            // TODO Fix GetId3 that uses create_function(), deprecated.
-            $file_source = @$getId3
-                // ->setOptionMD5Data(true)
-                // ->setOptionMD5DataSource(true)
-                // ->setEncoding('UTF-8')
+            $file_source = $getId3
                 ->analyze($full_file_path);
 
             $media_type = isset($file_source['mime_type']) ? $file_source['mime_type'] : 'undefined';
