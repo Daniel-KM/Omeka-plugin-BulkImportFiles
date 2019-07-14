@@ -1,23 +1,26 @@
 <?php
 /**
  * @var Zend_View $this
+ * @var int $row_id
+ * @var string $notice
+ * @var string $warning
+ * @var string $error
  */
 
 $result = array();
 $result['status'] = 200;
-if (!empty($this->notice)) {
+if (!empty($notice)) {
     $result['severity'] = 'notice';
-    $result['message'] = $this->notice;
+    $result['message'] = $notice;
 }
-if (!empty($this->warning)) {
+if (!empty($warning)) {
     $result['severity'] = 'warning';
-    $result['message'] = $this->warning;
+    $result['message'] = $warning;
 }
-if (!empty($this->error)) {
+if (!empty($error)) {
     $result['severity'] = 'error';
-    $result['message'] = $this->error;
+    $result['message'] = $error;
 }
 if (isset($result['severity'])) {
     echo json_encode($result, 320);
 }
-exit;
