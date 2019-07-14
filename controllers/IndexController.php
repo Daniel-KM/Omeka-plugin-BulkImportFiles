@@ -9,7 +9,7 @@
 use mikehaertl\pdftk\Pdf;
 
 // use GetId3\GetId3Core as GetId3;
-require_once dirname(__DIR__)."/../../application/libraries/getid3/getid3.php";
+require_once dirname(dirname(__FILE__)) . '/../../application/libraries/getid3/getid3.php';
 
 class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionController
 {
@@ -508,7 +508,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
             $media_type = $params['media_type'];
 
             $file_name = 'map_' . explode('/', $media_type)[0] . '_' . explode('/', $media_type)[1];
-            $filepath = dirname(__DIR__) . '/data/mapping/' . $file_name . '.csv';
+            $filepath = dirname(dirname(__FILE__)) . '/data/mapping/' . $file_name . '.csv';
 
             if (!strlen($filepath)) {
                 throw new RuntimeException('Filepath string should be longer that zero character.');
@@ -545,7 +545,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         if (!empty($params['media_type'])) {
             $file_name = $params['media_type'];
 
-            $filepath = dirname(__DIR__) . '/data/mapping/' . $file_name;
+            $filepath = dirname(dirname(__FILE__)) . '/data/mapping/' . $file_name;
 
             if (!strlen($filepath)) {
                 throw new RuntimeException('Filepath string should be longer that zero character.');
@@ -611,7 +611,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                 }
             }
 
-            $folder_path = dirname(__DIR__) . '/data/mapping';
+            $folder_path = dirname(dirname(__FILE__)) . '/data/mapping';
             $response = false;
             if (!empty($folder_path)) {
                 if (file_exists($folder_path) && is_dir($folder_path)) {
@@ -757,7 +757,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
     protected function prepareFilesMaps()
     {
         $this->filesMaps = array();
-        $folder_path = dirname(__DIR__) . '/data/mapping';
+        $folder_path = dirname(dirname(__FILE__)) . '/data/mapping';
         $db = get_db();
 
         if (!empty($folder_path)) {
