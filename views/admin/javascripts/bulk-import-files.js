@@ -1,68 +1,3 @@
-
-function add_file_action(media_type) {
-    url = basePath + '/admin/bulk-import-files/index/add-file';
-
-    var form_data = {
-        'media_type': media_type,
-    }
-
-    jQuery.ajax({
-        url: url,
-        data: form_data,
-        type: 'post',
-        success: function (response) {
-            jQuery('.response').addClass('success');
-            jQuery('.response').html(response);
-            jQuery('html, body').animate({scrollTop: 0}, 'slow');
-            location.reload();
-        },
-        error: function (response) {
-            jQuery('.response').html(response);
-        }
-    });
-}
-
-function delete_file_action(media_type) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    url = basePath + '/admin/bulk-import-files/index/delete-file';
-
-    var form_data = {
-        'media_type': media_type,
-    }
-
-    if (!confirm('Do you want to delete this file type?')) {
-        return;
-    }
-
-    jQuery.ajax({
-        url: url,
-        data: form_data,
-        type: 'post',
-        success: function (response) {
-            response = jQuery.parseJSON(response);
-            if(response.state == true){
-                location.href = response.reloadURL;
-            }else{
-                jQuery('.response').addClass('warning');
-                jQuery('.response').html(response);
-                jQuery('html, body').animate({scrollTop: 0}, 'slow');
-            }
-        },
-        error: function (response) {
-            response = jQuery.parseJSON(response.responseText);
-            if(response.state == true){
-                location.href = response.reloadURL;
-            }else{
-                jQuery('.response').addClass('warning');
-                jQuery('.response').html(response);
-                jQuery('html, body').animate({scrollTop: 0}, 'slow');
-            }
-        }
-    });
-}
-
 jQuery(document).ready(function () {
 
     // available_maps = jQuery.parseJSON(jQuery('.bulkimportfiles_maps_settings').val());
@@ -315,8 +250,8 @@ jQuery(document).ready(function () {
 
     function save_action(row) {
         // Omeka_file_id is the filename.
-        omeka_file_id = row.parents('.selected-files-row').find('.omeka_file_id').val();
-        media_type = row.parents('.selected-files-row').find('.media_type').val();
+        omeka_file_id = row.parents('.selected-files-row').first().data('file-item-id');
+        media_type = row.parents('.selected-files-row').first().data('file-type');
 
         listterms_select_total = [];
 
@@ -605,5 +540,61 @@ jQuery(document).ready(function () {
             create_action = setTimeout(make_single_file_upload(file_position_upload), 1000);
         });
     }
+
+    jQuery('.bulk-import-files.map-edit').on('click', '.file-type', function(e) {
+        e.preventDefault();
+
+        var process;
+        var url;
+
+        if (jQuery(this).hasClass('add-file-type')) {
+            process = 'add';
+            url = basePath + '/admin/bulk-import-files/index/add-file-type';
+        } else if (jQuery(this).hasClass('delete-file-type')) {
+            if (!confirm('Do you want to delete this file type?')) {
+                return;
+            }
+            process = 'delete';
+            url = basePath + '/admin/bulk-import-files/index/delete-file-type';
+        } else {
+            return;
+        }
+
+        var media_type = jQuery(this).parents('.selected-files-row').first().data('file-type');
+        var form_data = {
+            'media_type': media_type,
+        }
+
+        jQuery.ajax({
+            url: url,
+            data: form_data,
+            type: 'post',
+            beforeSend: function() {
+                jQuery('.response').html('');
+                jQuery('.response').removeClass('success warning error');
+            },
+            success: function (response) {
+                response = jQuery.parseJSON(response);
+                jQuery('.response').html(response.msg);
+                jQuery('html, body').animate({scrollTop: 0}, 'slow');
+                if (response.state == true) {
+                    jQuery('.response').addClass('success');
+                    location.href = response.reloadURL;
+                } else {
+                    jQuery('.response').addClass('warning');
+                }
+            },
+            error: function (response) {
+                response = jQuery.parseJSON(response.responseText);
+                jQuery('.response').html(response.msg);
+                jQuery('html, body').animate({scrollTop: 0}, 'slow');
+                if (response.state == true) {
+                    location.href = response.reloadURL;
+                } else {
+                    jQuery('.response').addClass('error');
+                }
+            }
+        });
+    });
 
 });

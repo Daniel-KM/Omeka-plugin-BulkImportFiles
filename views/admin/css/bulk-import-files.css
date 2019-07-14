@@ -40,7 +40,7 @@
     font-weight: bold;
 }
 
-#table-selected-files .separator span span {
+#table-selected-files .separator .label {
     color: #fff;
     padding-right: 5px;
 }
@@ -150,6 +150,9 @@ div.messages .response.success {
     background-color: #cdffcd;
 }
 
+div.messages .response.warning {
+    background-color: orange;
+}
 div.messages .response.error {
     background-color: #cdffcd;
 }
@@ -252,7 +255,7 @@ div.messages .response.error {
     background-color: #cdffcd;
 }
 
-#table-selected-files .separator.set_active span span {
+#table-selected-files .separator.set_active .label {
     color: #000;
 }
 

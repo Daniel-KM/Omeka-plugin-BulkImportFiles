@@ -495,84 +495,73 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         $this->view->value = "update";
     }
 
-    public function addFileAction()
+    public function addFileTypeAction()
     {
         if (!$this->getRequest()->isXmlHttpRequest()) {
             return;
         }
-
-        $params = array();
-        $params['media_type'] = $this->getParam('media_type');
-
-        if (!empty($params['media_type'])) {
-            $media_type = $params['media_type'];
-
-            $file_name = 'map_' . explode('/', $media_type)[0] . '_' . explode('/', $media_type)[1];
-            $filepath = dirname(dirname(__FILE__)) . '/data/mapping/' . $file_name . '.csv';
-
-            if (!strlen($filepath)) {
-                throw new RuntimeException('Filepath string should be longer that zero character.');
-            }
-
-            if (($handle = fopen($filepath, 'w')) === false) {
-                throw new RuntimeException(sprintf('Could not save file "%s" for writing.', $filepath));
-            }
-
-            $file_content = "$media_type = media_type\n";
-
-            fwrite($handle, $file_content);
-            fclose($handle);
-            $request = __('File successfully added!');
-        } else {
-            $request = __('Request empty.'); // @translate
-        }
-
-        $this->view->request = $request;
-    }
-
-    public function deleteFileAction()
-    {
-        if (!$this->getRequest()->isXmlHttpRequest()) {
-            return;
-        }
-
-        $params = array();
-        $params['media_type'] = $this->getParam('media_type');
-        $reloadURL = $this->view->url('bulk-import-files');
 
         $request = array();
+        $request['state'] = false;
+        $request['reloadURL'] = $this->view->url('bulk-import-files/index/map-edit');
 
-        if (!empty($params['media_type'])) {
-            $file_name = $params['media_type'];
-
-            $filepath = dirname(dirname(__FILE__)) . '/data/mapping/' . $file_name;
-
-            if (!strlen($filepath)) {
-                throw new RuntimeException('Filepath string should be longer that zero character.');
-            }
-
-            if (!is_writeable($filepath)) {
-                throw new RuntimeException(sprintf('File "%s" is not writeable. Check rights.', $filepath));
-            }
-
-            if (($handle = fopen($filepath, 'w')) === false) {
-                throw new RuntimeException(sprintf('Could not save file "%s" for writing.', $filepath));
-            }
-
-            fclose($handle);
-            unlink($filepath) or die("Couldn't delete file");
-
-            $request['state'] = true;
-            $request['reloadURL'] = $reloadURL;
-            $request['msg'] = __('File successfully deleted!');
+        $mediaType = $this->getParam('media_type');
+        if (empty($mediaType)) {
+            $request['msg'] = __('Request empty.'); // @translate
         } else {
-            $request['state'] = false;
-            $request['reloadURL'] = $reloadURL;
-            $request['msg'] = __('Request empty.');
+            $filename = 'map_' . explode('/', $mediaType)[0] . '_' . explode('/', $mediaType)[1] . '.csv';
+            $filepath = dirname(dirname(__FILE__)) . '/data/mapping/' . $filename;
+            if (($handle = fopen($filepath, 'w')) === false) {
+                $request['msg'] = __(sprintf('Could not save file "%s" for writing.', $filepath));
+            } else {
+                $content = "$mediaType = media_type\n";
+                fwrite($handle, $content);
+                fclose($handle);
+                $request['state'] = true;
+                $request['msg'] = __('File successfully added!');
+            }
         }
 
-        $request = json_encode($request);
         $this->view->request = $request;
+        $this->render('request');
+    }
+
+    public function deleteFileTypeAction()
+    {
+        if (!$this->getRequest()->isXmlHttpRequest()) {
+            return;
+        }
+
+        $request = array();
+        $request['state'] = false;
+        $request['reloadURL'] = $this->view->url('bulk-import-files/index/map-edit');
+
+        $mediaType = $this->getParam('media_type');
+        if (empty($mediaType)) {
+            $request['msg'] = __('Request empty.');
+        } else {
+            $filename = 'map_' . explode('/', $mediaType)[0] . '_' . explode('/', $mediaType)[1] . '.csv';
+            $filepath = dirname(dirname(__FILE__)) . '/data/mapping/' . $filename;
+            if (!strlen($filepath)) {
+                $request['msg'] = __('Filepath string should be longer that zero character.');
+            } elseif (!is_writeable($filepath)) {
+                $request['msg'] = __(sprintf('File "%s" is not writeable. Check rights.', $filepath));
+            } elseif (($handle = fopen($filepath, 'w')) === false) {
+                $request['msg'] = __(sprintf('Could not save file "%s" for writing.', $filepath));
+            } else {
+                fclose($handle);
+                $result = unlink($filepath);
+                if (!$result) {
+                    $request['msg'] = __(sprintf('Could not delete file "%s".', $filepath));
+                } else {
+                    $request['state'] = true;
+                    $request['msg'] = __('File successfully deleted!');
+                }
+            }
+        }
+
+        $this->view->request = $request;
+        $this->render('request');
     }
 
     public function saveOptionsAction()

@@ -22,25 +22,21 @@
     <?php foreach ($this->files_data_for_view as $files_data): ?>
         <?php
         $set_active = isset($files_data['file']['item_id']) ? ' set_active' : '';
+        $itemId = isset($files_data['file']['item_id']) ? $files_data['file']['item_id'] : '';
         ?>
-        <tr class="separator selected-files-row<?= $set_active ?>">
+        <tr class="separator selected-files-row<?= $set_active ?>" data-file-type="<?= $files_data['file']['type'] ?>" data-file-item-id="<?= $itemId ?>">
             <td colspan="1">
                 <span>
-                    <span><?= __('File name') ?></span>
-                    <?= $files_data['file']['name'] ?>
+                    <span class="label"><?= __('File name') ?></span>
+                    <span><?= $files_data['file']['name'] ?></span>
                 </span>
                 <span>
-                    <span><?= __('Media type') ?></span>
-                    <?php if (isset($files_data['file']['item_id'])): ?>
-                        <a onclick="delete_file_action('<?= $files_data['file']['item_id'] ?>')" style="color:black;" target="_blank" class="underline_link" title="<?= __('Click for delete') ?>" href="#" url="<?php echo $this->url('admin/bulk-import-files') . '/index/delete?arg_file=' . $files_data['file']['item_id']; ?>">
-                            <?= $files_data['file']['type'] ?>
-                        </a>
-                        <input type="hidden" value="<?= $files_data['file']['item_id'] ?>" class="omeka_file_id">
-                        <input type="hidden" value="<?= $files_data['file']['type'] ?>" class="media_type">
+                    <span class="label"><?= __('Media type') ?></span>
+                    <span><?= $files_data['file']['type'] ?></span>
+                    <?php if ($itemId): ?>
+                        <a class="small red button file-type delete-file-type" href="#"><?= __('Delete') ?></a>
                     <?php else: ?>
-                        <?= $files_data['file']['type'] ?>
-                        <div class="errors"><?= __('[Type is not defined]') ?></div>
-                        <button target="_blank" class="add_file_button" onClick="add_file_action('<?= $files_data['file']['type'] ?>')"><?= __('Add') ?></button>
+                        <a class="small green button file-type add-file-type" href="#"><?= __('Add') ?></a>
                     <?php endif; ?>
                 </span>
                 <span>
