@@ -486,7 +486,11 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
             );
 
             if ($newItem && $delete_file_action) {
-                @unlink($tmpPath);
+                $result = @unlink($tmpPath);
+                if (!$result) {
+                    $warning = error_get_last();
+                    $warning = $warning['message'];
+                }
             }
         }
 
