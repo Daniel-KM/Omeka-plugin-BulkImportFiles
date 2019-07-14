@@ -320,6 +320,7 @@ jQuery(document).ready(function () {
     }
 
     function save_action(row) {
+        // Omeka_file_id is the filename.
         omeka_file_id = row.parents('.selected-files-row').find('.omeka_file_id').val();
         media_type = row.parents('.selected-files-row').find('.media_type').val();
 
@@ -329,67 +330,57 @@ jQuery(document).ready(function () {
          * First find new added fields
          */
         row.parents('tr.selected-files-row').find('.listterms_with_action_row').each(function () {
-
-            file_field_property = jQuery(this).find('.js-file_field_property').html();
             listterms_select = [];
+            file_field_property = jQuery(this).find('.js-file_field_property').html();
             jQuery(this).find('.listterms_with_action').each(function () {
-
                 listterms_select.push(jQuery(this).find('.listterms_select').val());
-
             });
 
-            if (listterms_select.length > 0)
+            if (listterms_select.length > 0) {
                 listterms_select_total.push({
                     'field': file_field_property,
                     'property': listterms_select
                 });
-
+            }
         });
 
         /**
          * Add existing fields.
          */
-
         row.parents('tr.selected-files-row').find('.with_property').each(function () {
-
             file_field_property = jQuery(this).find('.js-file_field_property').html();
             listterms_select = [];
             jQuery(this).find('.omeka_property_name').each(function () {
-
                 var selected_option = jQuery(this).html();
+                // A check is done with the list because the value may be displayed differently.
+                var selected_option_check = selected_option.replace(/\s+/g, '');
                 var selected_option_key = null;
                 jQuery('.listterms option').each(function(index, obj){
-                    if(jQuery(obj).html() == selected_option){
+                    if (jQuery(obj).html().replace(/\s+/g, '') == selected_option_check) {
                         selected_option_key = jQuery(obj).attr('value');
                     }
                 });
                 listterms_select.push(selected_option_key);
             });
 
-            if (listterms_select.length > 0)
+            if (listterms_select.length > 0) {
                 listterms_select_total.push({
                     'field': file_field_property,
                     'property': listterms_select
                 });
-
+            }
         });
 
         /**
          * Check double omeka property fields.
          */
-
         check_same_property = '';
-
         jQuery('.response').removeClass('error');
-
         property_for_check = [];
 
         jQuery.each(listterms_select_total, function (key, val) {
-
             jQuery.each(val['property'], function (pr_key, pr_val) {
-
                 check_same_property = jQuery.inArray(pr_val, property_for_check);
-
                 if (check_same_property == 0) {
                     jQuery('.response').addClass('error');
                     jQuery('.response').html('Omeka property can’t be same!');
