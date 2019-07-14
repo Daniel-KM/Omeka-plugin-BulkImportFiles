@@ -16,7 +16,7 @@
             'privilege' => 'map-show',
         ),
         array(
-            'label' => __('Create mapping'),
+            'label' => __('Create mappings'),
             'module' => 'bulk-import-files',
             'resource' => 'BulkImportFiles_Index',
             'action' => 'map-edit',

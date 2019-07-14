@@ -16,6 +16,7 @@
 <table class="tablesaw tablesaw-stack" data-tablesaw-mode="stack" id="table-selected-files">
     <thead>
         <tr>
+            <th></th>
         </tr>
     </thead>
     <tbody>

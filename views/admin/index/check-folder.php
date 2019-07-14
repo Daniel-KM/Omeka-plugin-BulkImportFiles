@@ -17,23 +17,23 @@
 
 <?php else: ?>
 
-    <?php if (count($files_data)): ?>
+    <?php if (!empty($files_data)): ?>
         <div class="total_info">
-            <div class="total_info_row"><h4><?= __('Total files'); ?> </h4><?= $this->total_files ?></div>
-            <div class="total_info_row"><h4><?= __('Importable files'); ?></h4><?= $this->total_files_can_recognized ?></div>
+            <div class="total_info_row"><h4><?= __('Total files'); ?></h4><?= $this->total_files ?></div>
+            <div class="total_info_row"><h4><?= __('Importable files') ?></h4><?= $this->total_files_can_recognized ?></div>
             <div class="origin" data-origin="<?= $is_server ? 'server' : 'upload' ?>"><h4><?= __('Origin'); ?></h4><?= $is_server ? __('Directory on server') : __('Uploaded files') ?></div>
             <button type="button" class="js-recognize_files"><?= __('Make recognize and add') ?></button>
         </div>
         <table>
             <thead>
-            <tr>
-                <th style="width: 5%">#</th>
-                <th style="width: 40%"><?= __('File name') ?></th>
-                <th style="width: 10%"><?= __('Size') ?></th>
-                <th style="width: 20%"><?= __('Media type') ?></th>
-                <th style="width: 15%"><?= __('Has mapping') ?></th>
-                <th style="width: 10%"><?= __('Status') ?></th>
-            </tr>
+                <tr>
+                    <th style="width: 5%">#</th>
+                    <th style="width: 40%"><?= __('File name') ?></th>
+                    <th style="width: 10%"><?= __('Size') ?></th>
+                    <th style="width: 20%"><?= __('Media type') ?></th>
+                    <th style="width: 15%"><?= __('Has mapping') ?></th>
+                    <th style="width: 10%"><?= __('Status') ?></th>
+                </tr>
             </thead>
             <tbody>
                 <?php $i = 1; ?>

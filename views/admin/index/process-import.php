@@ -2,6 +2,7 @@
 /**
  * @var Zend_View $this
  */
+
 $result = array();
 $result['status'] = 200;
 if (!empty($this->notice)) {

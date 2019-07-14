@@ -1,4 +1,9 @@
 <?php
+/**
+ * @var Zend_View $this
+ * @var Zend_Form $form
+ * @var array $filesMaps
+ */
 
 $head = array(
     'title' => html_escape(__('Bulk Import Files')),
@@ -22,7 +27,9 @@ echo common('bulkimportfiles-nav');
         <?php foreach ($filesMaps as $item) : ?>
         <table class="tablesaw tablesaw-stack" data-tablesaw-mode="stack" id="table-selected-files">
             <thead>
-                <tr></tr>
+                <tr>
+                    <th></th>
+                </tr>
             </thead>
             <tbody>
                 <?php
@@ -32,9 +39,8 @@ echo common('bulkimportfiles-nav');
                     <td class="file_type_property_td">
                         <div class="file_type_property">
                             <h4><?= __('Media type') ?></h4>
-
                             <a target="_blank" class="underline_link" >
-                            <?= $mediaType ?>
+                                <?= $mediaType ?>
                             </a>
                         </div>
                     </td>
