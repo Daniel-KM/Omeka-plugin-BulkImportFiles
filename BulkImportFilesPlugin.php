@@ -22,12 +22,35 @@ class BulkImportFilesPlugin extends Omeka_Plugin_AbstractPlugin
      */
     public function hookDefineAcl($args)
     {
+        /** @var Zend_Acl $acl */
         $acl = $args['acl'];
 
         $acl->addResource('BulkImportFiles_Index');
 
-        // Specifically deny Admin users.
-        $acl->deny('admin', 'BulkImportFiles_Index');
+        // Only super admin can edit mapping, other people can only import.
+        // The rules include some ajax actions.
+        $roles = array('admin', 'researcher', 'contributor');
+        $acl
+            ->deny(
+                $roles,
+                'BulkImportFiles_Index'
+            )
+            ->allow(
+                $roles,
+                'BulkImportFiles_Index',
+                array(
+                    'index',
+                    // 'map-show',
+                    // 'map-edit',
+                    'make-import',
+                    'get-files',
+                    // 'save-options',
+                    'add-files',
+                    'delete-file',
+                    'check-folder',
+                    'process-import',
+                )
+            );
     }
 
     /**
@@ -42,6 +65,7 @@ class BulkImportFilesPlugin extends Omeka_Plugin_AbstractPlugin
             'label' => __('Bulk Import Files'),
             'uri' => url('bulk-import-files'),
             'resource' => 'BulkImportFiles_Index',
+            'privilege' => 'index',
         );
 
         return $nav;
