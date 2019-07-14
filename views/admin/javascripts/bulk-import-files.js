@@ -1,6 +1,6 @@
-jQuery(document).ready(function () {
+jQuery(document).ready(function ($) {
 
-    // available_maps = jQuery.parseJSON(jQuery('.bulkimportfiles_maps_settings').val());
+    // available_maps = $.parseJSON($('.bulkimportfiles_maps_settings').val());
     //
     // console.log(available_maps);
     //
@@ -9,16 +9,16 @@ jQuery(document).ready(function () {
     // available_maps_html += '</div>';
     // available_maps_html += '<div>';
     //
-    // jQuery.each(available_maps, function (key, val) {
+    // $.each(available_maps, function (key, val) {
     //     available_maps_html += '<div class="field js-maps-' + val + '">' + key + ' - <a class="button">' + val + '</a></div>';
     // })
     //
     // available_maps_html += '</div>';
     //
     //
-    // jQuery('.modulePreContent.module_BulkImportFiles').append(available_maps_html);
+    // $('.modulePreContent.module_BulkImportFiles').append(available_maps_html);
 
-    jQuery('#flup').change(function (event) {
+    $('#flup').change(function (event) {
 
         event.preventDefault();
 
@@ -30,12 +30,12 @@ jQuery(document).ready(function () {
         // console.log(path);
         // console.log(Folder);
 
-        importform = jQuery('#importform');
+        importform = $('#importform');
 
         // var form_data = new FormData(importform);
         // form_data.append('file', files);
 
-        //var formData = new FormData(jQuery(this).parents('form')[0]);
+        //var formData = new FormData($(this).parents('form')[0]);
 
         url = basePath + '/admin/bulk-import-files/index/get-files';
 
@@ -47,7 +47,7 @@ jQuery(document).ready(function () {
 
         // console.log(form_data);
 
-        jQuery.ajax({
+        $.ajax({
             url: url, // point to server-side PHP script
             dataType: 'text', // what to expect back from the PHP script
             cache: false,
@@ -56,10 +56,10 @@ jQuery(document).ready(function () {
             data: form_data,
             type: 'post',
             success: function (response) {
-                jQuery('#msg').html(response); // display success response from the PHP script
+                $('#msg').html(response); // display success response from the PHP script
             },
             error: function (response) {
-                jQuery('#msg').html(response); // display error response from the PHP script
+                $('#msg').html(response); // display error response from the PHP script
             }
         });
 
@@ -88,11 +88,11 @@ jQuery(document).ready(function () {
 
         // url = basePath + '/admin/bulk-import-files/index/get-files';
         //
-        // jQuery.ajax({
+        // $.ajax({
         //     url: url,
         //     type: 'POST',
         //     xhr: function() {
-        //         var myXhr = jQuery.ajaxSettings.xhr();
+        //         var myXhr = $.ajaxSettings.xhr();
         //         return myXhr;
         //     },
         //     success: function (data) {
@@ -105,13 +105,13 @@ jQuery(document).ready(function () {
         // });
         // return false;
 
-        // jQuery.each(files , function() {
+        // $.each(files , function() {
         //
         // });
         //
-        // jQuery('.selected-files-source').append('<input type="file" name="source">');
+        // $('.selected-files-source').append('<input type="file" name="source">');
 
-        // jQuery.ajax({
+        // $.ajax({
         //     url: url,
         //     type: 'POST',
         //     data: form_data,
@@ -121,7 +121,7 @@ jQuery(document).ready(function () {
         //     processData: false,
         // }).done(function (data) {
         //
-        //     //jQuery('.selected-files').html(data);
+        //     //$('.selected-files').html(data);
         //     // console.log(data);
         // }).fail(function (err) {
         //     console.log(err);
@@ -129,12 +129,12 @@ jQuery(document).ready(function () {
 
     })
 
-    jQuery('#multiFiles').change(function (event) {
+    $('#multiFiles').change(function (event) {
         // console.log('change');
-        jQuery('#upload').click();
+        $('#upload').click();
     });
 
-    jQuery('.map-edit #upload').on('click', function (e) {
+    $('.map-edit #upload').on('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
 
@@ -146,64 +146,37 @@ jQuery(document).ready(function () {
             form_data.append('files[]', document.getElementById('multiFiles').files[x]);
         }
 
-        jQuery.ajax({
+        $.ajax({
             url: url,
-            dataType:'html',
+            dataType: 'html',
             cache: false,
             contentType: false,
             processData: false,
             data: form_data,
             type: 'post',
             success: function (response) {
-                jQuery('.files-map-block').html(response);
-                jQuery('#table-selected-files .o-icon-more.sidebar-content').click(function () {
-                    jQuery(this).parent().parent().find('.full_info').toggle();
+                $('.files-map-block').html(response);
+                $('#table-selected-files .o-icon-more.sidebar-content').click(function () {
+                    $(this).parent().parent().find('.full_info').toggle();
                 })
-
                 add_button_action();
             },
             error: function (response) {
-                jQuery('.response').html(response);
+                $('.response').html(response);
             }
         });
-
-        // jQuery.ajax({
-        //     url: url,
-        //     dataType: 'html',
-        //     cache: false,
-        //     contentType: false,
-        //     processData: false,
-        //     data: form_data,
-        //     type: 'post',
-        //     success: function (response) {
-
-        //         jQuery('.files-map-block').html("HELOW");
-        //         // jQuery('.files-map-block').html(response);
-        //         // jQuery('#table-selected-files .o-icon-more.sidebar-content').click(function () {
-        //         //     jQuery(this).parent().parent().find('.full_info').toggle();
-        //         // })
-
-        //         // add_button_action();
-        //     },
-        //     error: function (response) {
-        //         //jQuery('#msg').html(response); // display error response from the PHP script
-        //     }
-        // });
     });
 
     function add_button_action() {
-        listterms = jQuery('.listterms').html();
+        listterms = $('.listterms').html();
 
-        jQuery('.omeka_property .js-add-action').unbind('click');
+        $('.omeka_property .js-add-action').unbind('click');
 
-        jQuery('.omeka_property .js-add-action').on('click', function () {
-
-            var row_td = jQuery(this).parent().parent().parent();
+        $('.omeka_property .js-add-action').on('click', function () {
+            var row_td = $(this).parent().parent().parent();
             row_td.find('.omeka_list_property').append(listterms);
-
             count = parseInt(row_td.parent().data('property-count'));
-
-            count++;
+            ++count;
             row_td.parent().data('property-count', count);
 
             add_button_action();
@@ -214,12 +187,10 @@ jQuery(document).ready(function () {
                 row_td.parent().addClass('listterms_with_action_row');
             }
 
-            jQuery('.omeka_property .js-single-remove-action').unbind('click');
+            $('.omeka_property .js-single-remove-action').unbind('click');
 
-
-            jQuery('.omeka_list_property .js-single-remove-action').on('click', function () {
-
-                listterms_with_action_row = jQuery(this).parent().parent().parent();
+            $('.omeka_list_property .js-single-remove-action').on('click', function () {
+                listterms_with_action_row = $(this).parent().parent().parent();
 
                 count = parseInt(listterms_with_action_row.parent().parent().data('property-count'));
                 --count;
@@ -230,22 +201,19 @@ jQuery(document).ready(function () {
                     listterms_with_action_row.parent().parent().find('.js-prepare_to_save').removeClass('js-prepare_to_save');
                 }
 
-                jQuery(this).parent().parent().remove();
-
+                $(this).parent().parent().remove();
             });
-
         });
 
-        jQuery('.omeka_property .js-remove-action').on('click', function () {
-            jQuery(this).parent().parent().remove();
+        $('.omeka_property .js-remove-action').on('click', function () {
+            $(this).parent().parent().remove();
         });
 
-        jQuery('.full_info .js-save-button button').off('click');
-        jQuery('.full_info .js-save-button button').on('click', function () {
-            save_action(jQuery(this));
+        $('.full_info .js-save-button button').off('click');
+        $('.full_info .js-save-button button').on('click', function () {
+            save_action($(this));
             event.preventDefault();
         });
-
     }
 
     function save_action(row) {
@@ -260,9 +228,9 @@ jQuery(document).ready(function () {
          */
         row.parents('tr.selected-files-row').find('.listterms_with_action_row').each(function () {
             listterms_select = [];
-            file_field_property = jQuery(this).find('.js-file_field_property').html();
-            jQuery(this).find('.listterms_with_action').each(function () {
-                listterms_select.push(jQuery(this).find('.listterms_select').val());
+            file_field_property = $(this).find('.js-file_field_property').html();
+            $(this).find('.listterms_with_action').each(function () {
+                listterms_select.push($(this).find('.listterms_select').val());
             });
 
             if (listterms_select.length > 0) {
@@ -277,16 +245,16 @@ jQuery(document).ready(function () {
          * Add existing fields.
          */
         row.parents('tr.selected-files-row').find('.with_property').each(function () {
-            file_field_property = jQuery(this).find('.js-file_field_property').html();
+            file_field_property = $(this).find('.js-file_field_property').html();
             listterms_select = [];
-            jQuery(this).find('.omeka_property_name').each(function () {
-                var selected_option = jQuery(this).html();
+            $(this).find('.omeka_property_name').each(function () {
+                var selected_option = $(this).html();
                 // A check is done with the list because the value may be displayed differently.
                 var selected_option_check = selected_option.replace(/\s+/g, '');
                 var selected_option_key = null;
-                jQuery('.listterms option').each(function(index, obj){
-                    if (jQuery(obj).val().replace(/\s+/g, '') == selected_option_check) {
-                        selected_option_key = jQuery(obj).attr('value');
+                $('.listterms option').each(function(index, obj){
+                    if ($(obj).val().replace(/\s+/g, '') == selected_option_check) {
+                        selected_option_key = $(obj).attr('value');
                     }
                 });
                 listterms_select.push(selected_option_key);
@@ -304,15 +272,15 @@ jQuery(document).ready(function () {
          * Check double omeka property fields.
          */
         check_same_property = '';
-        jQuery('.response').removeClass('error');
+        $('.response').removeClass('error');
         property_for_check = [];
 
-        jQuery.each(listterms_select_total, function (key, val) {
-            jQuery.each(val['property'], function (pr_key, pr_val) {
-                check_same_property = jQuery.inArray(pr_val, property_for_check);
+        $.each(listterms_select_total, function (key, val) {
+            $.each(val['property'], function (pr_key, pr_val) {
+                check_same_property = $.inArray(pr_val, property_for_check);
                 if (check_same_property == 0) {
-                    jQuery('.response').addClass('error');
-                    jQuery('.response').html('Omeka property can’t be same!');
+                    $('.response').addClass('error');
+                    $('.response').html('Omeka property can’t be same!');
                     return false;
                 } else {
                     property_for_check.push(pr_val);
@@ -325,7 +293,7 @@ jQuery(document).ready(function () {
         });
 
         if (check_same_property == 0) {
-            jQuery('html, body').animate({scrollTop: 0}, 'slow');
+            $('html, body').animate({scrollTop: 0}, 'slow');
             return false;
         }
 
@@ -338,44 +306,43 @@ jQuery(document).ready(function () {
             'listterms_select': listterms_select_total,
         }
 
-        jQuery.ajax({
+        $.ajax({
             url: url,
             data: form_data,
             type: 'post',
             success: function (response) {
-                jQuery('.response').addClass('success');
-                jQuery('.response').html(response);
-                jQuery('html, body').animate({scrollTop: 0}, 'slow');
+                $('.response').addClass('success');
+                $('.response').html(response);
+                $('html, body').animate({scrollTop: 0}, 'slow');
             },
             error: function (response) {
-                jQuery('.response').html(response);
+                $('.response').html(response);
             }
         });
-
     }
 
     directory = '';
 
     // Import by a directory on the server.
-    jQuery('.make_import_form .check_button').click(function () {
-        directory = {'folder' : jQuery('.make_import_form #directory').val()};
+    $('.make_import_form .check_button').click(function () {
+        directory = {'folder' : $('.make_import_form #directory').val()};
         url = basePath + '/admin/bulk-import-files/index/check-folder';
-        jQuery.ajax({
+        $.ajax({
             url: url,
             data: directory,
             type: 'post',
             beforeSend: function() {
-                jQuery('.modal-loader').show();
-                jQuery('.response').html('');
+                $('.modal-loader').show();
+                $('.response').html('');
             },
             success: function (response) {
-                jQuery('.response').html(response);
+                $('.response').html(response);
             },
             error: function (response) {
-                jQuery('.response').html(response);
+                $('.response').html(response);
             },
             complete: function () {
-                jQuery('.modal-loader').hide();
+                $('.modal-loader').hide();
                 action_for_recognize_files();
             }
         });
@@ -385,7 +352,7 @@ jQuery(document).ready(function () {
     });
 
     // Import by a directory on the computer.
-    jQuery('.make-import #upload').click(function (e) {
+    $('.make-import #upload').click(function (e) {
         e.preventDefault();
         e.stopPropagation();
 
@@ -397,26 +364,26 @@ jQuery(document).ready(function () {
             form_data.append('files[]', document.getElementById('multiFiles').files[x]);
         }
 
-        jQuery.ajax({
+        $.ajax({
             url: url,
-            dataType:'html',
+            dataType: 'html',
             cache: false,
             contentType: false,
             processData: false,
             data: form_data,
             type: 'post',
             beforeSend: function() {
-                jQuery('.modal-loader').show();
-                jQuery('.response').html('');
+                $('.modal-loader').show();
+                $('.response').html('');
             },
             success: function (response) {
-                jQuery('.response').html(response);
+                $('.response').html(response);
             },
             error: function (response) {
-                jQuery('.response').html(response);
+                $('.response').html(response);
             },
             complete: function () {
-                jQuery('.modal-loader').hide();
+                $('.modal-loader').hide();
                 action_for_recognize_files();
             }
         });
@@ -437,23 +404,22 @@ jQuery(document).ready(function () {
         // console.log(data_for_recognize['filenames'][file_position_upload]);
 
         url = basePath + '/admin/bulk-import-files/index/process-import';
-        directory = jQuery('.make_import_form #directory').val();
-        jQuery('.directory').val(directory);
+        directory = $('.make_import_form #directory').val();
+        $('.directory').val(directory);
         isServer = data_for_recognize['is_server'];
-        importUnmapped = jQuery('#import_unmapped').is(':checked');
+        importUnmapped = $('#import_unmapped').is(':checked');
 
         if ((file_position_upload >= total_files_for_upload) || (typeof data_for_recognize['filenames'][file_position_upload] == 'undefined')) {
             clearTimeout(create_action);
-            jQuery('.response').append('<p>Import launched.</p>');
-            jQuery('.response').append('<p>Note that the possible Omeka errors during import are reported in the logs.</p>');
-            jQuery('.response').find('.total_info').remove();
+            $('.response').append('<p>Import launched.</p>');
+            $('.response').append('<p>Note that the possible Omeka errors during import are reported in the logs.</p>');
+            $('.response').find('.total_info').remove();
         } else {
-
             if (make_action == true) {
                 var rowId = data_for_recognize['row_id'][file_position_upload];
                 var row = importUnmapped
-                    ? jQuery('.response .file_data.row_id_' + rowId)
-                    : jQuery('.response .isset_yes.row_id_' + rowId);
+                    ? $('.response .file_data.row_id_' + rowId)
+                    : $('.response .isset_yes.row_id_' + rowId);
                 data_process = {
                     'is_server': isServer,
                     'row_id' : rowId,
@@ -461,9 +427,9 @@ jQuery(document).ready(function () {
                     'source' : data_for_recognize['sources'][file_position_upload],
                     'directory': isServer ? directory : null,
                     'import_unmapped': importUnmapped,
-                    'delete_file': isServer ? jQuery('#delete_file').is(':checked') : true,
+                    'delete_file': isServer ? $('#delete_file').is(':checked') : true,
                 };
-                jQuery.ajax({
+                $.ajax({
                     url: url,
                     data: data_process,
                     type: 'post',
@@ -473,7 +439,7 @@ jQuery(document).ready(function () {
                     },
                     success: function (response) {
                         if (response.length > 1) {
-                            var resp = jQuery.parseJSON(response);
+                            var resp = $.parseJSON(response);
                             row.addClass(resp.severity);
                             if (resp.severity === 'notice') {
                                 row.find('.status').html('Notice');
@@ -492,7 +458,7 @@ jQuery(document).ready(function () {
                         }
                     },
                     error: function (response) {
-                        jQuery('.response').html(response);
+                        $('.response').html(response);
                     },
                     complete: function (response) {
                         make_action = true;
@@ -507,19 +473,19 @@ jQuery(document).ready(function () {
     }
 
     function action_for_recognize_files() {
-        jQuery('.js-recognize_files').click(function () {
+        $('.js-recognize_files').click(function () {
             filenames = [];
             sources = [];
             row_id = [];
-            isServer = jQuery('.response').find('.total_info .origin').data('origin') === 'server';
+            isServer = $('.response').find('.total_info .origin').data('origin') === 'server';
 
-            jQuery('.response').find('.total_info').remove();
-            importUnmapped = jQuery('#import_unmapped').is(':checked');
+            $('.response').find('.total_info').remove();
+            importUnmapped = $('#import_unmapped').is(':checked');
             rows =importUnmapped
-                ? jQuery('.response .file_data')
-                : jQuery('.response .isset_yes')
+                ? $('.response .file_data')
+                : $('.response .isset_yes')
             rows.each(function () {
-                filedata = jQuery(this).find('.filename');
+                filedata = $(this).find('.filename');
                 filenames.push(filedata.data('filename'));
                 sources.push(filedata.data('source'));
                 row_id.push(filedata.data('row-id'));
@@ -541,16 +507,16 @@ jQuery(document).ready(function () {
         });
     }
 
-    jQuery('.bulk-import-files.map-edit').on('click', '.file-type', function(e) {
+    $('.bulk-import-files.map-edit').on('click', '.file-type', function(e) {
         e.preventDefault();
 
         var process;
         var url;
 
-        if (jQuery(this).hasClass('add-file-type')) {
+        if ($(this).hasClass('add-file-type')) {
             process = 'add';
             url = basePath + '/admin/bulk-import-files/index/add-file-type';
-        } else if (jQuery(this).hasClass('delete-file-type')) {
+        } else if ($(this).hasClass('delete-file-type')) {
             if (!confirm('Do you want to delete this file type?')) {
                 return;
             }
@@ -560,38 +526,38 @@ jQuery(document).ready(function () {
             return;
         }
 
-        var media_type = jQuery(this).parents('.selected-files-row').first().data('file-type');
+        var media_type = $(this).parents('.selected-files-row').first().data('file-type');
         var form_data = {
             'media_type': media_type,
         }
 
-        jQuery.ajax({
+        $.ajax({
             url: url,
             data: form_data,
             type: 'post',
             beforeSend: function() {
-                jQuery('.response').html('');
-                jQuery('.response').removeClass('success warning error');
+                $('.response').html('');
+                $('.response').removeClass('success warning error');
             },
             success: function (response) {
-                response = jQuery.parseJSON(response);
-                jQuery('.response').html(response.msg);
-                jQuery('html, body').animate({scrollTop: 0}, 'slow');
+                response = $.parseJSON(response);
+                $('.response').html(response.msg);
+                $('html, body').animate({scrollTop: 0}, 'slow');
                 if (response.state == true) {
-                    jQuery('.response').addClass('success');
+                    $('.response').addClass('success');
                     location.href = response.reloadURL;
                 } else {
-                    jQuery('.response').addClass('warning');
+                    $('.response').addClass('warning');
                 }
             },
             error: function (response) {
-                response = jQuery.parseJSON(response.responseText);
-                jQuery('.response').html(response.msg);
-                jQuery('html, body').animate({scrollTop: 0}, 'slow');
+                response = $.parseJSON(response.responseText);
+                $('.response').html(response.msg);
+                $('html, body').animate({scrollTop: 0}, 'slow');
                 if (response.state == true) {
                     location.href = response.reloadURL;
                 } else {
-                    jQuery('.response').addClass('error');
+                    $('.response').addClass('error');
                 }
             }
         });
