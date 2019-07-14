@@ -611,7 +611,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
             // $elementSetTable = $db->getTable('ElementSet');
             foreach ($listterms_select as $term_item_name) {
                 foreach ($term_item_name['property'] as $term) {
-                    list($elementSetName, $elementName) = array_map('trim', explode(':', $term));
+                    list($elementSetName, $elementName) = array_map('trim', explode(':', $term, 2));
                     $element = $elementTable->findByElementSetNameAndElementName($elementSetName, $elementName);
                     if (!$element) {
                         continue;
@@ -766,6 +766,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                         }
 
                         // Reorder as mapping = element.
+                        // An element has no "/" and no ".", but requires a ":".
                         if (strpos($value[0], '/') === false
                             && strpos($value[0], '.') === false
                             && strpos($value[0], ':') !== false
@@ -777,10 +778,12 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                             $map = $value[0];
                         }
 
-                        if (strpos($elementFullName, ':') === false || count(explode(':', $elementFullName)) !== 2) {
+                        // An element may have many ":", unlike a standard term.
+                        if (strpos($elementFullName, ':') === false) {
                             continue;
                         }
-                        list($elementSetName, $elementName) = array_map('trim', explode(':', $elementFullName));
+
+                        list($elementSetName, $elementName) = array_map('trim', explode(':', $elementFullName, 2));
                         $element = $elementTable->findByElementSetNameAndElementName($elementSetName, $elementName);
                         if (!$element) {
                             continue;
