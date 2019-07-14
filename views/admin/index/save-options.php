@@ -1,5 +1,5 @@
 <?php
 /**
- * @var \Zend\View\Renderer\PhpRenderer $this
+ * @var Zend_View $this
  */
 echo $request;

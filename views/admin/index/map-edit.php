@@ -20,7 +20,7 @@ echo common('bulkimportfiles-nav');
 
 <?php
 /**
- * @var \Zend\View\Renderer\PhpRenderer $this
+ * @var Zend_View $this
  */
 
 // __ = $this->plugin('translate');

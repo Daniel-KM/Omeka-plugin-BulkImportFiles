@@ -1,6 +1,6 @@
 <?php
 /**
- * @var \Zend\View\Renderer\PhpRenderer $this
+ * @var Zend_View $this
  */
 $result = array();
 $result['status'] = 200;

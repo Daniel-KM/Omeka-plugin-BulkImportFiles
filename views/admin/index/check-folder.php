@@ -1,6 +1,6 @@
 <?php
 /**
- * @var \Zend\View\Renderer\PhpRenderer $this
+ * @var Zend_View $this
  * @var array $files_data
  * @var int $total_files
  * @var int $total_files_can_recognized
