@@ -481,7 +481,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
                 ) //$fileMetadata
             );
 
-            if ($hasNewItem && $delete_file_action === 'yes') {
+            if ($hasNewItem && $delete_file_action) {
                 unlink($full_file_path);
             }
         }

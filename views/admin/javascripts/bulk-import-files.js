@@ -473,7 +473,7 @@ jQuery(document).ready(function () {
                 data_for_recognize_single = {
                     'data_for_recognize_single' : data_for_recognize['filenames'][file_position_upload],
                     'directory': directory,
-                    'delete-file': jQuery('#delete-file').val(),
+                    'delete-file': jQuery('#delete-file').is(':checked'),
                     'data_for_recognize_row_id' : rowId,
                 };
 
@@ -542,15 +542,5 @@ jQuery(document).ready(function () {
             create_action = setTimeout(make_single_file_upload(file_position_upload), 1000);
         });
     }
-
-    jQuery('#delete-file').click(function () {
-        if_checked = jQuery(this).val();
-
-        if (if_checked == 'no') {
-            jQuery(this).val('yes');
-        } else {
-            jQuery(this).val('no')
-        }
-    })
 
 });
