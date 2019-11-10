@@ -689,7 +689,7 @@ class BulkImportFiles_IndexController extends Omeka_Controller_AbstractActionCon
         foreach ($data as $key => $value) {
             if (is_array($value)) {
                 $this->_flatArray($value, $ignoredKeys, $keys . '.' . $key);
-            } elseif (!in_array($key, $ignoredKeys)) {
+            } elseif (!in_array($key, $ignoredKeys, true)) {
                 $this->flatArray[] = array(
                     'key' => trim($keys . '.' . $key, '.'),
                     'value' => $value,
